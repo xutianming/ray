@@ -12,6 +12,7 @@ import sys
 import random
 from tempfile import gettempdir
 import zipfile
+import pickle
 
 import time
 from datetime import datetime
@@ -256,6 +257,10 @@ for iteration in range(num_steps):
         print("Iteration {}: weights are {}".format(iteration, weights))
     byteOutput = subprocess.check_output(["df", "-h"])
     print(byteOutput.decode('UTF-8').rstrip())
+    if iteration == 9:
+        pickle.dump(new_weights_list, open("weight.obj", 'w'))
+        byteOutput = subprocess.check_output(["ls", "-atrl"])
+        print(byteOutput.decode('UTF-8').rstrip())
 
 rate = float(total_calc_time)/float(total_net_time)
 print("rate:", rate)
