@@ -13,13 +13,16 @@ import random
 from tempfile import gettempdir
 import zipfile
 
+import time
+from datetime import datetime
+import subprocess
 import numpy as np
 from six.moves import urllib
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 import ray
 
-ray.init()
+ray.init(num_cpus=400)
 
 
 
@@ -44,8 +47,8 @@ def maybe_download(filename, expected_bytes):
     return local_filename
 
 
-filename = maybe_download('text8.zip', 31344016)
-#filename = 'text8.zip'
+#filename = maybe_download('text8.zip', 31344016)
+filename = 'text8.zip'
 
 # Read the data into a list of strings.
 def read_data(filename):
@@ -59,7 +62,7 @@ vocabulary = read_data(filename)
 print('Data size', len(vocabulary))
 
 # Step 2: Build the dictionary and replace rare words with UNK token.
-vocabulary_size = 50000
+vocabulary_size = 7051
 
 
 def build_dataset(words, n_words):
@@ -125,19 +128,16 @@ def generate_batch(batch_size, num_skips, skip_window):
     data_index = (data_index + len(data) - span) % len(data)
     return batch, labels
 
-
-batch, labels = generate_batch(batch_size=8, num_skips=2, skip_window=1)
-
 # Step 4: Build and train a skip-gram model.
 
-batch_size = 128
-embedding_size = 128  # Dimension of the embedding vector.
-skip_window = 1  # How many words to consider left and right.
+batch_size = 10
+embedding_size = 10000  # Dimension of the embedding vector.
+skip_window = 4  # How many words to consider left and right.
 num_skips = 2  # How many times to reuse an input to generate a label.
-num_sampled = 64  # Number of negative examples to sample.
+num_sampled = 5  # Number of negative examples to sample.
+print("Embedding size:", embedding_size)
 
-
-@ray.remote
+@ray.remote(num_cpus=20)
 class Word2VecModel(object):
     def __init__(self):
         # Input data.
@@ -180,10 +180,10 @@ class Word2VecModel(object):
 
         # Construct the SGD optimizer using a learning rate of 1.0.
         with tf.name_scope('optimizer'):
-            self.optimizer = tf.train.GradientDescentOptimizer(1.0).minimize(self.loss)
+            self.optimizer = tf.train.GradientDescentOptimizer(0.024).minimize(self.loss)
 
         # Compute the cosine similarity between minibatch examples and all embeddings.
-        norm = tf.sqrt(tf.reduce_sum(tf.square(embeddings), 1, keepdims=True))
+        norm = tf.sqrt(tf.reduce_sum(tf.square(embeddings), 1, keep_dims=True))
         normalized_embeddings = embeddings / norm
 
         # Add variable initializer.
@@ -205,21 +205,60 @@ class Word2VecModel(object):
         return normalized_embeddings.eval()
     
 num_steps = 10
-actor_num = 3
+actor_num = 10
 
 
 actor_list = [Word2VecModel.remote() for i in range(actor_num)]
 weights = ray.get(actor_list[0].get_weights.remote())
 
+total_net_time = 0
+total_calc_time = 0
+#start_time = datetime.now()
 for iteration in range(num_steps):
-
+    start_time = datetime.now()
     weights_ids = ray.put(weights)
+    end_time = datetime.now()
+    total_net_time += (end_time - start_time).total_seconds()
     new_weights_ids = []
+    batch_inputs_list = []
+    batch_labels_list = []
+    start_time = datetime.now()
     for actor in actor_list:
         batch_inputs, batch_labels = generate_batch(batch_size, num_skips, skip_window)
-        new_weight_id = actor.step.remote(weights_ids, batch_inputs, batch_labels)
+        batch_inputs_list.append(batch_inputs)
+        batch_labels_list.append(batch_labels)
+   
+    #start_time = datetime.now()
+    for i in range(actor_num):
+        new_weight_id = actor.step.remote(weights_ids, batch_inputs_list[i], batch_labels_list[i])
         new_weights_ids.append(new_weight_id)
+    
+    ready, _ = ray.wait(new_weights_ids, num_returns=len(new_weights_ids), timeout = 5000)
+    #print(ready)
+    end_time = datetime.now()
+    total_calc_time += (end_time - start_time).total_seconds()
+    
+    start_time = datetime.now()
     new_weights_list = ray.get(new_weights_ids)
+    end_time = datetime.now()
+    total_net_time += (end_time - start_time).total_seconds() 
+    print((end_time - start_time).total_seconds())
+    '''
+    cnt = 0
+    for weight_dict in new_weights_list:
+        for variable in weight_dict:
+            cnt += len(weight_dict[variable])
+    print("CNT:", cnt)
+    break
+    '''
     weights = {variable: sum(weight_dict[variable] for weight_dict in new_weights_list) / actor_num for variable in new_weights_list[0]}
-    if iteration % 2 == 0:
+    if iteration % 100 == 0:
         print("Iteration {}: weights are {}".format(iteration, weights))
+    byteOutput = subprocess.check_output(["df", "-h"])
+    print(byteOutput.decode('UTF-8').rstrip())
+
+rate = float(total_calc_time)/float(total_net_time)
+print("rate:", rate)
+#print("Total time:", (datetime.now()-start_time).total_seconds)
+#print("Avg calc time:", float(total_calc_time)/float(num_steps))
+#print("Avg pull time:", float(total_pull_time)/float(num_steps))
