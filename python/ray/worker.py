@@ -396,7 +396,9 @@ class Worker(object):
                         timeout,
                         self.get_serialization_context(self.task_driver_id))
                 return results
-            except pyarrow.lib.ArrowInvalid:
+            except pyarrow.lib.ArrowInvalid as e:
+                logger.error(e, exc_info=True)
+                logger.error(str(e))
                 # TODO(ekl): the local scheduler could include relevant
                 # metadata in the task kill case for a better error message
                 invalid_error = RayTaskError(

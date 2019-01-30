@@ -169,6 +169,7 @@ void ObjectManager::TryPull(const ObjectID &object_id) {
   RAY_CHECK(local_objects_.count(object_id) == 0);
   // Make sure that there is at least one client which is not the local client.
   // TODO(rkn): It may actually be possible for this check to fail.
+  RAY_LOG(ERROR) << "Try pyll object id: " << object_id << "\n";
   RAY_CHECK(client_vector.size() != 1 || client_vector[0] != client_id_);
 
   // Choose a random client to pull the object from.

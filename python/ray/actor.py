@@ -613,7 +613,7 @@ class ActorHandle(object):
             object_ids = object_ids[0]
         elif len(object_ids) == 0:
             object_ids = None
-
+        logger.error("Object ids created:{} on node {}".format(object_ids.hex(), ray.services.get_node_ip_address()))
         return object_ids
 
     # Make tab completion work.
