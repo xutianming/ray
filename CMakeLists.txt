@@ -65,6 +65,7 @@ include(GNUInstallDirs)
 include(BuildUtils)
 enable_testing()
 
+include(Libev)
 include(ThirdpartyToolchain)
 include(Common)
 

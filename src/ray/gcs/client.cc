@@ -178,13 +178,13 @@ Status AsyncGcsClient::Attach(boost::asio::io_service &io_service) {
       new RedisAsioClient(io_service, primary_context_->subscribe_context()));
   **/
   signal(SIGPIPE, SIG_IGN);
-  evloop_ = ev_loop_new(EVFLAG_AUTO);
+  struct ev_loop *evloop = ev_loop_new(EVFLAG_AUTO);
   for (std::shared_ptr<RedisContext> context : shard_contexts_) {
-    redisLibevAttach(evloop_, context->async_context());
-    redisLibevAttach(evloop_, context->subscribe_context());
+    redisLibevAttach(evloop, context->async_context());
+    redisLibevAttach(evloop, context->subscribe_context());
   }
-  redisLibevAttach(evloop_, primary_context_->async_context());
-  redisLibevAttach(evloop_, primary_context_->subscribe_context());
+  redisLibevAttach(evloop, primary_context_->async_context());
+  redisLibevAttach(evloop, primary_context_->subscribe_context());
   return Status::OK();
 }
 
