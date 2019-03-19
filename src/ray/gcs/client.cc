@@ -2,6 +2,7 @@
 
 #include "ray/gcs/redis_context.h"
 #include "ray/ray_config.h"
+#include <signal.h>
 
 static void GetRedisShards(redisContext *context, std::vector<std::string> &addresses,
                            std::vector<int> &ports) {
@@ -162,6 +163,7 @@ AsyncGcsClient::AsyncGcsClient(const std::string &address, int port, bool is_tes
 
 Status AsyncGcsClient::Attach(boost::asio::io_service &io_service) {
   // Take care of sharding contexts.
+  /**
   RAY_CHECK(shard_asio_async_clients_.empty()) << "Attach shall be called only once";
   for (std::shared_ptr<RedisContext> context : shard_contexts_) {
     shard_asio_async_clients_.emplace_back(
@@ -173,6 +175,15 @@ Status AsyncGcsClient::Attach(boost::asio::io_service &io_service) {
       new RedisAsioClient(io_service, primary_context_->async_context()));
   asio_subscribe_auxiliary_client_.reset(
       new RedisAsioClient(io_service, primary_context_->subscribe_context()));
+  **/
+  signal(SIGPIPE, SIG_IGN);
+  evloop_ = ev_loop_new(EVFLAG_AUTO);
+  for (std::shared_ptr<RedisContext> context : shard_contexts_) {
+    redisLibevAttach(evloop_, context->async_context());
+    redisLibevAttach(evloop_, context->subscribe_context());
+  }
+  redisLibevAttach(evloop_, primary_context_->async_context());
+  redisLibevAttach(evloop_, primary_context_->subscribe_context());
   return Status::OK();
 }
 

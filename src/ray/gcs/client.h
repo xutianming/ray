@@ -9,6 +9,7 @@
 #include "ray/id.h"
 #include "ray/status.h"
 #include "ray/util/logging.h"
+#include "ray/thirdparty/hiredis/adapters/libev.h"
 
 namespace ray {
 
