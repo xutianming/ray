@@ -51,7 +51,7 @@ set(RAY_SRCS
   raylet/raylet.cc
 )
 
-set(RAY_SYSTEM_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} pthread)
+set(RAY_SYSTEM_LIBS ${Boost_SYSTEM_LIBRARY} ${Boost_THREAD_LIBRARY} ${LIBEV_LIBRARY} pthread)
 if(UNIX AND NOT APPLE)
   set(RAY_SYSTEM_LIBS ${RAY_SYSTEM_LIBS} -lrt)
 endif()

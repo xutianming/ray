@@ -3,6 +3,7 @@
 #include "ray/gcs/redis_context.h"
 #include "ray/ray_config.h"
 #include <signal.h>
+#include "ray/thirdparty/hiredis/adapters/libev.h"
 
 static void GetRedisShards(redisContext *context, std::vector<std::string> &addresses,
                            std::vector<int> &ports) {

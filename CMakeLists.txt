@@ -77,7 +77,7 @@ set(GCS_FBS_OUTPUT_DIRECTORY
         "${CMAKE_CURRENT_LIST_DIR}/src/ray/gcs/format")
 include_directories(${GCS_FBS_OUTPUT_DIRECTORY})
 
-
+include_directories(SYSTEM ${LIBEV_INCLUDE_DIRS})
 include_directories(SYSTEM ${ARROW_INCLUDE_DIR})
 include_directories(SYSTEM ${PLASMA_INCLUDE_DIR})
 include_directories("${CMAKE_CURRENT_LIST_DIR}/src/")
