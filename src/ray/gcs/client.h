@@ -98,6 +98,7 @@ class RAY_EXPORT AsyncGcsClient {
   std::vector<std::shared_ptr<RedisContext>> shard_contexts_;
   std::vector<std::unique_ptr<RedisAsioClient>> shard_asio_async_clients_;
   std::vector<std::unique_ptr<RedisAsioClient>> shard_asio_subscribe_clients_;
+  std::vector<std::shared_ptr<RedisContext>> libev_shard_contexts_;
   // The following context writes everything to the primary shard
   std::shared_ptr<RedisContext> primary_context_;
   std::unique_ptr<DriverTable> driver_table_;

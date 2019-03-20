@@ -95,11 +95,14 @@ AsyncGcsClient::AsyncGcsClient(const std::string &address, int port,
     // Populate shard_contexts.
     for (size_t i = 0; i < addresses.size(); ++i) {
       shard_contexts_.push_back(std::make_shared<RedisContext>());
+      libev_shard_contexts_.push_back(std::make_shared<RedisContext>());
     }
 
     RAY_CHECK(shard_contexts_.size() == addresses.size());
     for (size_t i = 0; i < addresses.size(); ++i) {
       RAY_CHECK_OK(shard_contexts_[i]->Connect(addresses[i], ports[i], /*sharding=*/true,
+                                               /*password=*/password));
+      RAY_CHECK_OK(libev_shard_contexts_[i]->Connect(addresses[i], ports[i], /*sharding=*/true,
                                                /*password=*/password));
     }
   } else {
@@ -114,7 +117,7 @@ AsyncGcsClient::AsyncGcsClient(const std::string &address, int port,
   driver_table_.reset(new DriverTable({primary_context_}, this));
   heartbeat_batch_table_.reset(new HeartbeatBatchTable({primary_context_}, this));
   // Tables below would be sharded.
-  object_table_.reset(new ObjectTable(shard_contexts_, this));
+  object_table_.reset(new ObjectTable(libev_shard_contexts_, this));
   raylet_task_table_.reset(new raylet::TaskTable(shard_contexts_, this, command_type));
   task_reconstruction_log_.reset(new TaskReconstructionLog(shard_contexts_, this));
   task_lease_table_.reset(new TaskLeaseTable(shard_contexts_, this));
@@ -164,7 +167,7 @@ AsyncGcsClient::AsyncGcsClient(const std::string &address, int port, bool is_tes
 
 Status AsyncGcsClient::Attach(boost::asio::io_service &io_service) {
   // Take care of sharding contexts.
-  /**
+  
   RAY_CHECK(shard_asio_async_clients_.empty()) << "Attach shall be called only once";
   for (std::shared_ptr<RedisContext> context : shard_contexts_) {
     shard_asio_async_clients_.emplace_back(
@@ -176,15 +179,13 @@ Status AsyncGcsClient::Attach(boost::asio::io_service &io_service) {
       new RedisAsioClient(io_service, primary_context_->async_context()));
   asio_subscribe_auxiliary_client_.reset(
       new RedisAsioClient(io_service, primary_context_->subscribe_context()));
-  **/
+  
   signal(SIGPIPE, SIG_IGN);
   struct ev_loop *evloop = ev_loop_new(EVFLAG_AUTO);
-  for (std::shared_ptr<RedisContext> context : shard_contexts_) {
+  for (std::shared_ptr<RedisContext> context : libev_shard_contexts_) {
     redisLibevAttach(evloop, context->async_context());
     redisLibevAttach(evloop, context->subscribe_context());
   }
-  redisLibevAttach(evloop, primary_context_->async_context());
-  redisLibevAttach(evloop, primary_context_->subscribe_context());
   return Status::OK();
 }
 
