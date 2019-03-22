@@ -3,7 +3,7 @@
 
 #include <map>
 #include <string>
-
+#include <ev.h>
 #include "ray/gcs/asio.h"
 #include "ray/gcs/tables.h"
 #include "ray/id.h"
@@ -105,6 +105,8 @@ class RAY_EXPORT AsyncGcsClient {
   std::unique_ptr<RedisAsioClient> asio_async_auxiliary_client_;
   std::unique_ptr<RedisAsioClient> asio_subscribe_auxiliary_client_;
   CommandType command_type_;
+  struct ev_loop *evloop_;
+  std::thread evloop_thread_;
 };
 
 class SyncGcsClient {

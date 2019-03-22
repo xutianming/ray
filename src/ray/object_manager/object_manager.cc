@@ -522,7 +522,8 @@ ray::Status ObjectManager::Wait(const std::vector<ObjectID> &object_ids,
                                 int64_t timeout_ms, uint64_t num_required_objects,
                                 bool wait_local, const WaitCallback &callback) {
   UniqueID wait_id = UniqueID::from_random();
-  RAY_LOG(DEBUG) << "Wait request " << wait_id << " on " << client_id_;
+  RAY_LOG(DEBUG) << "Wait request " << wait_id << " on " << client_id_
+	  			 << "for " << object_ids[0];
   RAY_RETURN_NOT_OK(AddWaitRequest(wait_id, object_ids, timeout_ms, num_required_objects,
                                    wait_local, callback));
   RAY_RETURN_NOT_OK(LookupRemainingWaitObjects(wait_id));

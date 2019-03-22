@@ -193,6 +193,7 @@ ray::Status ObjectDirectory::UnsubscribeObjectLocations(const UniqueID &callback
 
 ray::Status ObjectDirectory::LookupLocations(const ObjectID &object_id,
                                              const OnLocationsFound &callback) {
+  RAY_LOG(DEBUG) << "Lookup locations: " << object_id;
   ray::Status status;
   auto it = listeners_.find(object_id);
   if (it != listeners_.end() && it->second.subscribed) {
@@ -207,6 +208,7 @@ ray::Status ObjectDirectory::LookupLocations(const ObjectID &object_id,
     // We do not have any locations cached due to a concurrent
     // SubscribeObjectLocations call, so look up the object's locations
     // directly from the GCS.
+	RAY_LOG(DEBUG) << "Access object table for: " << object_id;
     status = gcs_client_->object_table().Lookup(
         JobID::nil(), object_id,
         [this, callback](gcs::AsyncGcsClient *client, const ObjectID &object_id,

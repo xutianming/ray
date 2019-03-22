@@ -962,13 +962,14 @@ void NodeManager::ProcessWaitRequestMessage(
   int64_t wait_ms = message->timeout();
   uint64_t num_required_objects = static_cast<uint64_t>(message->num_ready_objects());
   bool wait_local = message->wait_local();
-
+  RAY_LOG(DEBUG) << "wait object id:" << object_ids[0] << "\n";
   std::vector<ObjectID> required_object_ids;
   for (auto const &object_id : object_ids) {
     if (!task_dependency_manager_.CheckObjectLocal(object_id)) {
       // Add any missing objects to the list to subscribe to in the task
       // dependency manager. These objects will be pulled from remote node
       // managers and reconstructed if necessary.
+	  RAY_LOG(DEBUG) << "object id:" << object_id << "not local\n"; 
       required_object_ids.push_back(object_id);
     }
   }

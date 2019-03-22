@@ -3,6 +3,7 @@
 #include "ray/gcs/redis_context.h"
 #include "ray/ray_config.h"
 #include <signal.h>
+#include <thread>
 #include "ray/thirdparty/hiredis/adapters/libev.h"
 
 static void GetRedisShards(redisContext *context, std::vector<std::string> &addresses,
@@ -181,11 +182,16 @@ Status AsyncGcsClient::Attach(boost::asio::io_service &io_service) {
       new RedisAsioClient(io_service, primary_context_->subscribe_context()));
   
   signal(SIGPIPE, SIG_IGN);
-  struct ev_loop *evloop = ev_loop_new(EVFLAG_AUTO);
+  evloop_ = ev_loop_new(EVFLAG_AUTO);
   for (std::shared_ptr<RedisContext> context : libev_shard_contexts_) {
-    redisLibevAttach(evloop, context->async_context());
-    redisLibevAttach(evloop, context->subscribe_context());
+	//redisLibevAttach(evloop_, context->async_context());
+  	new RedisAsioClient(io_service, context->async_context());
+	new RedisAsioClient(io_service, context->subscribe_context());
   }
+  evloop_thread_ = std::thread([this] {
+    ev_run(evloop_, EVRUN_ONCE);
+    ev_run(evloop_, EVRUN_NOWAIT);
+  });
   return Status::OK();
 }
 
