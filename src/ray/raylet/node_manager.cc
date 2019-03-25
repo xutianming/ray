@@ -969,7 +969,7 @@ void NodeManager::ProcessWaitRequestMessage(
       // Add any missing objects to the list to subscribe to in the task
       // dependency manager. These objects will be pulled from remote node
       // managers and reconstructed if necessary.
-	  RAY_LOG(DEBUG) << "object id:" << object_id << "not local\n"; 
+      RAY_LOG(DEBUG) << "object id:" << object_id << " not local\n"; 
       required_object_ids.push_back(object_id);
     }
   }
@@ -985,7 +985,8 @@ void NodeManager::ProcessWaitRequestMessage(
       [this, client_blocked, client, current_task_id](std::vector<ObjectID> found,
                                                       std::vector<ObjectID> remaining) {
         // Write the data.
-        flatbuffers::FlatBufferBuilder fbb;
+        RAY_LOG(DEBUG) << "object manager wait success";
+	    flatbuffers::FlatBufferBuilder fbb;
         flatbuffers::Offset<protocol::WaitReply> wait_reply = protocol::CreateWaitReply(
             fbb, to_flatbuf(fbb, found), to_flatbuf(fbb, remaining));
         fbb.Finish(wait_reply);

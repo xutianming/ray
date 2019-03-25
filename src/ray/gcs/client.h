@@ -106,6 +106,7 @@ class RAY_EXPORT AsyncGcsClient {
   std::unique_ptr<RedisAsioClient> asio_subscribe_auxiliary_client_;
   CommandType command_type_;
   struct ev_loop *evloop_;
+  struct ev_loop *evloop_sub_;
   std::thread evloop_thread_;
 };
 

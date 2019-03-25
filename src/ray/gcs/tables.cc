@@ -85,8 +85,10 @@ Status Log<ID, Data>::AppendAt(const JobID &job_id, const ID &id,
 
 template <typename ID, typename Data>
 Status Log<ID, Data>::Lookup(const JobID &job_id, const ID &id, const Callback &lookup) {
+  RAY_LOG(DEBUG) << "try to look up id: " << id;
   num_lookups_++;
   auto callback = [this, id, lookup](const std::string &data) {
+    RAY_LOG(DEBUG) << "look up id: " << id << " success callback";
     if (lookup != nullptr) {
       std::vector<DataT> results;
       if (!data.empty()) {
@@ -290,8 +292,10 @@ std::string Table<ID, Data>::DebugString() const {
 template <typename ID, typename Data>
 Status Set<ID, Data>::Add(const JobID &job_id, const ID &id,
                           std::shared_ptr<DataT> &dataT, const WriteCallback &done) {
+  RAY_LOG(DEBUG) << "try to add object id: " << id;
   num_adds_++;
   auto callback = [this, id, dataT, done](const std::string &data) {
+    RAY_LOG(DEBUG) << "object table object id: " << id << " added.";
     if (done != nullptr) {
       (done)(client_, id, *dataT);
     }

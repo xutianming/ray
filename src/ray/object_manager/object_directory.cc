@@ -208,12 +208,13 @@ ray::Status ObjectDirectory::LookupLocations(const ObjectID &object_id,
     // We do not have any locations cached due to a concurrent
     // SubscribeObjectLocations call, so look up the object's locations
     // directly from the GCS.
-	RAY_LOG(DEBUG) << "Access object table for: " << object_id;
+    RAY_LOG(DEBUG) << "Access object table for: " << object_id;
     status = gcs_client_->object_table().Lookup(
         JobID::nil(), object_id,
         [this, callback](gcs::AsyncGcsClient *client, const ObjectID &object_id,
                          const std::vector<ObjectTableDataT> &location_updates) {
-          // Build the set of current locations based on the entries in the log.
+          RAY_LOG(DEBUG) << "found locations for: " << object_id; 
+		  // Build the set of current locations based on the entries in the log.
           std::unordered_set<ClientID> client_ids;
           UpdateObjectLocations(GcsTableNotificationMode::APPEND_OR_ADD, location_updates,
                                 gcs_client_->client_table(), &client_ids);
