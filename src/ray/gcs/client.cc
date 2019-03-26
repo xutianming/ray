@@ -187,7 +187,7 @@ Status AsyncGcsClient::Attach(boost::asio::io_service &io_service) {
   for (std::shared_ptr<RedisContext> context : libev_shard_contexts_) {
 	
 	if (redisLibevAttach(evloop_, context->async_context()) != REDIS_OK) {
-	    RAY_LOG(DEBUG) << "libev attach failed";	
+	  RAY_LOG(DEBUG) << "libev attach failed";	
 	} else {
 		RAY_LOG(DEBUG) << "libev attach ok";
 	}
@@ -205,17 +205,17 @@ Status AsyncGcsClient::Attach(boost::asio::io_service &io_service) {
 
   evloop_thread_ = std::thread([this] {
   	RAY_LOG(DEBUG) << "ev loop start";
-	counter_++;
+	  counter_++;
     while (true) {
   	  ev_run(evloop_, EVRUN_ONCE);
 	}
   });
   evloop_thread_sub_ = std::thread([this] {
     RAY_LOG(DEBUG) << "ev loop sub start";
-	counter_++;
-	while(true) {
-	  ev_run(evloop_sub_, EVRUN_ONCE);
-	}
+	  counter_++;
+	  while(true) {
+	    ev_run(evloop_sub_, EVRUN_ONCE);
+	  }
   });
   while(counter_ != 2) {
     RAY_LOG(DEBUG) << "wait for ev loop to start";
