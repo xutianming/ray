@@ -215,7 +215,7 @@ ray::Status ObjectDirectory::LookupLocations(const ObjectID &object_id,
         [this, callback](gcs::AsyncGcsClient *client, const ObjectID &object_id,
                          const std::vector<ObjectTableDataT> &location_updates) {
           RAY_LOG(DEBUG) << "found locations for: " << object_id; 
-		  // Build the set of current locations based on the entries in the log.
+		      // Build the set of current locations based on the entries in the log.
           std::unordered_set<ClientID> client_ids;
           UpdateObjectLocations(GcsTableNotificationMode::APPEND_OR_ADD, location_updates,
                                 gcs_client_->client_table(), &client_ids);

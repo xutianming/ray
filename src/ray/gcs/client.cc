@@ -2,8 +2,6 @@
 
 #include "ray/gcs/redis_context.h"
 #include "ray/ray_config.h"
-#include <signal.h>
-#include <thread>
 #include "ray/thirdparty/hiredis/adapters/libev.h"
 
 static void GetRedisShards(redisContext *context, std::vector<std::string> &addresses,
@@ -181,46 +179,21 @@ Status AsyncGcsClient::Attach(boost::asio::io_service &io_service) {
   asio_subscribe_auxiliary_client_.reset(
       new RedisAsioClient(io_service, primary_context_->subscribe_context()));
   
-  signal(SIGPIPE, SIG_IGN);
-  evloop_ = ev_loop_new(EVFLAG_AUTO);
-  evloop_sub_ = ev_loop_new(EVFLAG_AUTO);
+  
   for (std::shared_ptr<RedisContext> context : libev_shard_contexts_) {
-	
-	if (redisLibevAttach(evloop_, context->async_context()) != REDIS_OK) {
-	  RAY_LOG(DEBUG) << "libev attach failed";	
-	} else {
-		RAY_LOG(DEBUG) << "libev attach ok";
-	}
-	redisLibevAttach(evloop_sub_, context->subscribe_context());
-    
+	  if (redisLibevAttach(EV_DEFAULT_ context->async_context()) != REDIS_OK) {
+	    RAY_LOG(DEBUG) << "libev attach failed";	
+	  } else {
+		  RAY_LOG(DEBUG) << "libev attach ok";
+	  }
+	  redisLibevAttach(EV_DEFAULT_ context->subscribe_context());
     //new RedisAsioClient(io_service, context->async_context());
-	//new RedisAsioClient(io_service, context->subscribe_context());
+	  //new RedisAsioClient(io_service, context->subscribe_context());
   }
   // events to connect to redis
-  ev_run(evloop_, EVRUN_ONCE);
-  ev_run(evloop_, EVRUN_NOWAIT);
-  ev_run(evloop_sub_, EVRUN_ONCE);
-  ev_run(evloop_sub_, EVRUN_NOWAIT);
-
-
-  evloop_thread_ = std::thread([this] {
-  	RAY_LOG(DEBUG) << "ev loop start";
-	  counter_++;
-    while (true) {
-  	  ev_run(evloop_, EVRUN_ONCE);
-	}
-  });
-  evloop_thread_sub_ = std::thread([this] {
-    RAY_LOG(DEBUG) << "ev loop sub start";
-	  counter_++;
-	  while(true) {
-	    ev_run(evloop_sub_, EVRUN_ONCE);
-	  }
-  });
-  while(counter_ != 2) {
-    RAY_LOG(DEBUG) << "wait for ev loop to start";
-  }
-  RAY_LOG(DEBUG) << "ev loop started.";
+  ev_run(EV_DEFAULT_ EVRUN_ONCE);
+  ev_run(EV_DEFAULT_ EVRUN_NOWAIT);
+  RAY_LOG(DEBUG) << "attach to redis ready.";
   return Status::OK();
 }
 

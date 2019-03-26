@@ -249,7 +249,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
     if (status == REDIS_ERR) {
       return Status::RedisError(std::string(async_context_->errstr));
     }
-	RAY_LOG(DEBUG) << "Redis err msg: " << std::string(async_context_->errstr);
+	  RAY_LOG(DEBUG) << "Redis err msg: " << std::string(async_context_->errstr);
   }
   return Status::OK();
 }

@@ -1,5 +1,7 @@
 #include <iostream>
-
+#include <ev.h>
+#include <signal.h>
+#include <thread>
 #include "ray/ray_config.h"
 #include "ray/raylet/raylet.h"
 #include "ray/status.h"
@@ -155,6 +157,13 @@ int main(int argc, char *argv[]) {
   };
   boost::asio::signal_set signals(main_service, SIGTERM);
   signals.async_wait(handler);
+  signal(SIGPIPE, SIG_IGN);
+  std::thread ev_thread = std::thread([this] {
+    RAY_LOG(DEBUG) << "ev loop start";
+	  while(true) {
+	    ev_run(EV_DEFAULT_ EVRUN_NOWAIT);
+	  }
+  });
 
   main_service.run();
 }
