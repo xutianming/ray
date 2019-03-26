@@ -152,6 +152,7 @@ void ObjectDirectory::HandleClientRemoved(const ClientID &client_id) {
 ray::Status ObjectDirectory::SubscribeObjectLocations(const UniqueID &callback_id,
                                                       const ObjectID &object_id,
                                                       const OnLocationsFound &callback) {
+  RAY_LOG(DEBUG) << "request location info for object: " << object_id;
   ray::Status status = ray::Status::OK();
   auto it = listeners_.find(object_id);
   if (it == listeners_.end()) {

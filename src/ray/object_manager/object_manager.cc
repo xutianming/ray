@@ -150,6 +150,7 @@ ray::Status ObjectManager::Pull(const ObjectID &object_id) {
             it->second.timer_set = false;
           }
         } else {
+          RAY_LOG(DEBUG) << object_id << "found, try to pull";
           // New object locations were found, so begin trying to pull from a
           // client. This will be called every time a new client location
           // appears.

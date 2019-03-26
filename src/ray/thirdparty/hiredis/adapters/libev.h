@@ -57,6 +57,7 @@ static void redisLibevReadEvent(EV_P_ ev_io *watcher, int revents) {
 static void redisLibevWriteEvent(EV_P_ ev_io *watcher, int revents) {
 #if EV_MULTIPLICITY
     ((void)loop);
+	fprintf(stderr, "ev multiplicity\n");
 #endif
     ((void)revents);
     
@@ -66,11 +67,13 @@ static void redisLibevWriteEvent(EV_P_ ev_io *watcher, int revents) {
 }
 
 static void redisLibevAddRead(void *privdata) {
+	fprintf(stderr, "libev add read\n");
     redisLibevEvents *e = (redisLibevEvents*)privdata;
     struct ev_loop *loop = e->loop;
     ((void)loop);
     if (!e->reading) {
         e->reading = 1;
+		fprintf(stderr, "trigger read event\n");
         ev_io_start(EV_A_ &e->rev);
     }
 }
@@ -86,11 +89,13 @@ static void redisLibevDelRead(void *privdata) {
 }
 
 static void redisLibevAddWrite(void *privdata) {
+	fprintf(stderr, "libev add write\n");
     redisLibevEvents *e = (redisLibevEvents*)privdata;
     struct ev_loop *loop = e->loop;
     ((void)loop);
     if (!e->writing) {
         e->writing = 1;
+		fprintf(stderr, "libev trigger write\n");
         ev_io_start(EV_A_ &e->wev);
     }
 }
@@ -124,6 +129,7 @@ static int redisLibevAttach(EV_P_ redisAsyncContext *ac) {
     e = (redisLibevEvents*)malloc(sizeof(*e));
     e->context = ac;
 #if EV_MULTIPLICITY
+	fprintf(stderr, "ev multiplicity\n");
     e->loop = loop;
 #else
     e->loop = NULL;

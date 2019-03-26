@@ -38,7 +38,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <ctype.h>
-
+#include <stdio.h>
 #include "hiredis.h"
 #include "net.h"
 #include "sds.h"
@@ -905,7 +905,8 @@ int redisGetReply(redisContext *c, void **reply) {
  * the reply (or replies in pub/sub).
  */
 int __redisAppendCommand(redisContext *c, const char *cmd, size_t len) {
-    sds newbuf;
+    fprintf(stderr, "append cmd to output buffer: %s\n", cmd);
+	sds newbuf;
 
     newbuf = sdscatlen(c->obuf,cmd,len);
     if (newbuf == NULL) {

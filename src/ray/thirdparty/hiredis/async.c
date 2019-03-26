@@ -40,6 +40,7 @@
 #include "net.h"
 #include "dict.c"
 #include "sds.h"
+#include <stdio.h>
 
 #define _EL_ADD_READ(ctx) do { \
         if ((ctx)->ev.addRead) (ctx)->ev.addRead((ctx)->ev.data); \
@@ -581,7 +582,8 @@ static const char *nextArgument(const char *start, const char **str, size_t *len
  * formatted command to the output buffer and registers the provided callback
  * function with the context. */
 static int __redisAsyncCommand(redisAsyncContext *ac, redisCallbackFn *fn, void *privdata, const char *cmd, size_t len) {
-    redisContext *c = &(ac->c);
+    fprintf(stderr, "exec cmd: %s\n", cmd);
+	redisContext *c = &(ac->c);
     redisCallback cb;
     int pvariant, hasnext;
     const char *cstr, *astr;

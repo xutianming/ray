@@ -81,6 +81,9 @@ void ReconstructionPolicy::HandleReconstructionLogAppend(const TaskID &task_id,
 void ReconstructionPolicy::AttemptReconstruction(const TaskID &task_id,
                                                  const ObjectID &required_object_id,
                                                  int reconstruction_attempt) {
+  RAY_LOG(DEBUG) << "Attempt Reconstruction, task id: " << task_id
+                 << "object id: " << required_object_id
+				 << "attempts: " << reconstruction_attempt;
   // If we are no longer listening for objects created by this task, give up.
   auto it = listening_tasks_.find(task_id);
   if (it == listening_tasks_.end()) {
@@ -129,6 +132,7 @@ void ReconstructionPolicy::AttemptReconstruction(const TaskID &task_id,
 }
 
 void ReconstructionPolicy::HandleTaskLeaseExpired(const TaskID &task_id) {
+  RAY_LOG(DEBUG) << "handle task lease expired task id: " << task_id;
   auto it = listening_tasks_.find(task_id);
   RAY_CHECK(it != listening_tasks_.end());
   int reconstruction_attempt = it->second.reconstruction_attempt;
@@ -169,6 +173,7 @@ void ReconstructionPolicy::HandleTaskLeaseNotification(const TaskID &task_id,
 }
 
 void ReconstructionPolicy::ListenAndMaybeReconstruct(const ObjectID &object_id) {
+  RAY_LOG(DEBUG) << "listen and may reconstruct object id: " << object_id;
   TaskID task_id = ComputeTaskId(object_id);
   auto it = listening_tasks_.find(task_id);
   // Add this object to the list of objects created by the same task.

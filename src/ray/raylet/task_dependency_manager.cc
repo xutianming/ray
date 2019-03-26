@@ -53,6 +53,7 @@ void TaskDependencyManager::HandleRemoteDependencyRequired(const ObjectID &objec
     if (inserted.second) {
       // If we haven't already, request the object manager to pull it from a
       // remote node.
+      RAY_LOG(DEBUG) << "Try to pull object: " << object_id;
       RAY_CHECK_OK(object_manager_.Pull(object_id));
       reconstruction_policy_.ListenAndMaybeReconstruct(object_id);
     }

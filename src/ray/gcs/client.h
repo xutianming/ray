@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <ev.h>
+#include <atomic>
 #include "ray/gcs/asio.h"
 #include "ray/gcs/tables.h"
 #include "ray/id.h"
@@ -108,6 +109,8 @@ class RAY_EXPORT AsyncGcsClient {
   struct ev_loop *evloop_;
   struct ev_loop *evloop_sub_;
   std::thread evloop_thread_;
+  std::thread evloop_thread_sub_;
+  std::atomic_int counter_ = {0};
 };
 
 class SyncGcsClient {
