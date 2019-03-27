@@ -553,11 +553,11 @@ void redisAsyncHandleWrite(redisAsyncContext *ac) {
     } else {
         /* Continue writing when not done, stop writing otherwise */
         if (!done) {
-            fprintf(stderr, "do not finish writing, add write again");
+            fprintf(stderr, "do not finish writing, add write again\n");
             _EL_ADD_WRITE(ac);
         }
         else {
-			fprintf(stderr, "finish writing, del write");
+			fprintf(stderr, "finish writing, del write\n");
             _EL_DEL_WRITE(ac);
         }
         /* Always schedule reads after writes */

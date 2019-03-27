@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
   std::thread ev_thread = std::thread([] {
     RAY_LOG(DEBUG) << "ev loop start";
 	  while(true) {
-	    ev_run(EV_DEFAULT_ EVRUN_ONCE);
+	    ev_run(EV_DEFAULT_ EVRUN_NOWAIT);
 	  }
   });
 
