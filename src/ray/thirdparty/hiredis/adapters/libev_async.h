@@ -49,7 +49,7 @@ static void redisLibevReadEvent(EV_P_ ev_async *watcher, int revents) {
     ((void)loop);
 #endif
     ((void)revents);
-    //fprintf(stderr, "libev read event happen.\n");
+    fprintf(stderr, "libev read event happen.\n");
     redisLibevEvents *e = (redisLibevEvents*)watcher->data;
     redisAsyncHandleRead(e->context);
 }
@@ -57,26 +57,26 @@ static void redisLibevReadEvent(EV_P_ ev_async *watcher, int revents) {
 static void redisLibevWriteEvent(EV_P_ ev_async *watcher, int revents) {
 #if EV_MULTIPLICITY
     ((void)loop);
-    //fprintf(stderr, "ev multiplicity\n");
+    fprintf(stderr, "ev multiplicity\n");
 #endif
     ((void)revents);
     
-    //fprintf(stderr, "libev write event happen.\n");
+    fprintf(stderr, "libev write event happen.\n");
     redisLibevEvents *e = (redisLibevEvents*)watcher->data;
     redisAsyncHandleWrite(e->context);
 }
 
 static void redisLibevAddRead(void *privdata) {
-    //fprintf(stderr, "libev add read\n");
+    fprintf(stderr, "libev add read\n");
     redisLibevEvents *e = (redisLibevEvents*)privdata;
     struct ev_loop *loop = e->loop;
     ((void)loop);
     if (!e->reading) {
         e->reading = 1;
-		//fprintf(stderr, "libev trigger read\n");
+		fprintf(stderr, "libev trigger read\n");
         ev_async_send(EV_A_ &e->rev);
     } else {
-        //fprintf(stderr, "in reading, do nothing\n");
+        fprintf(stderr, "in reading, do nothing\n");
     }
 }
 
@@ -86,22 +86,22 @@ static void redisLibevDelRead(void *privdata) {
     ((void)loop);
     if (e->reading) {
         e->reading = 0;
-        //fprintf(stderr, "libev stop read\n");
-        //ev_io_stop(EV_A_ &e->rev);
+        fprintf(stderr, "libev stop read\n");
+        ev_io_stop(EV_A_ &e->rev);
     }
 }
 
 static void redisLibevAddWrite(void *privdata) {
-    //fprintf(stderr, "libev add write\n");
+    fprintf(stderr, "libev add write\n");
     redisLibevEvents *e = (redisLibevEvents*)privdata;
     struct ev_loop *loop = e->loop;
     ((void)loop);
     if (!e->writing) {
         e->writing = 1;
-	    //fprintf(stderr, "libev trigger write\n");
+	    fprintf(stderr, "libev trigger write\n");
         ev_async_send(EV_A_ &e->wev);
     } else {
-        //fprintf(stderr, "in writing, do nothing\n");
+        fprintf(stderr, "in writing, do nothing\n");
     }
 }
 
@@ -111,7 +111,7 @@ static void redisLibevDelWrite(void *privdata) {
     ((void)loop);
     if (e->writing) {
         e->writing = 0;
-        //fprintf(stderr, "libev stop write\n");
+        fprintf(stderr, "libev stop write\n");
         //ev_io_stop(EV_A_ &e->wev);
     }
 }
