@@ -51,7 +51,6 @@ static void redisLibevReadEvent(EV_P_ ev_io *watcher, int revents) {
     ((void)revents);
     //fprintf(stderr, "libev read event happen.\n");
     redisLibevEvents *e = (redisLibevEvents*)watcher->data;
-    e->reading = 0;
     redisAsyncHandleRead(e->context);
 }
 
@@ -64,7 +63,6 @@ static void redisLibevWriteEvent(EV_P_ ev_io *watcher, int revents) {
     
     //fprintf(stderr, "libev write event happen.\n");
     redisLibevEvents *e = (redisLibevEvents*)watcher->data;
-    e->writing = 0;
     redisAsyncHandleWrite(e->context);
 }
 
@@ -86,10 +84,11 @@ static void redisLibevDelRead(void *privdata) {
     redisLibevEvents *e = (redisLibevEvents*)privdata;
     struct ev_loop *loop = e->loop;
     ((void)loop);
-    
-    e->reading = 0;
-    //fprintf(stderr, "libev stop read\n");
-    ev_io_stop(EV_A_ &e->rev);
+    if (e->reading) {
+        e->reading = 0;
+        //fprintf(stderr, "libev stop read\n");
+        ev_io_stop(EV_A_ &e->rev);
+    }
 }
 
 static void redisLibevAddWrite(void *privdata) {
@@ -110,9 +109,11 @@ static void redisLibevDelWrite(void *privdata) {
     redisLibevEvents *e = (redisLibevEvents*)privdata;
     struct ev_loop *loop = e->loop;
     ((void)loop);
-    e->writing = 0;
-    //fprintf(stderr, "libev stop write\n");
-    ev_io_stop(EV_A_ &e->wev);
+    if (e->writing) {
+        e->writing = 0;
+        //fprintf(stderr, "libev stop write\n");
+        ev_io_stop(EV_A_ &e->wev);
+    }
 }
 
 static void redisLibevCleanup(void *privdata) {
