@@ -49,8 +49,9 @@ static void redisLibevReadEvent(EV_P_ ev_io *watcher, int revents) {
     ((void)loop);
 #endif
     ((void)revents);
-    fprintf(stderr, "libev read event.\n");
+    fprintf(stderr, "libev read event happen.\n");
     redisLibevEvents *e = (redisLibevEvents*)watcher->data;
+    e->reading = 0;
     redisAsyncHandleRead(e->context);
 }
 
@@ -61,8 +62,9 @@ static void redisLibevWriteEvent(EV_P_ ev_io *watcher, int revents) {
 #endif
     ((void)revents);
     
-    fprintf(stderr, "libev write event.\n");
+    fprintf(stderr, "libev write event happen.\n");
     redisLibevEvents *e = (redisLibevEvents*)watcher->data;
+    e->writing = 0;
     redisAsyncHandleWrite(e->context);
 }
 
@@ -75,6 +77,8 @@ static void redisLibevAddRead(void *privdata) {
         e->reading = 1;
 		fprintf(stderr, "libev trigger read\n");
         ev_io_start(EV_A_ &e->rev);
+    } else {
+        fprintf(stderr, "in reading, do nothing\n");
     }
 }
 
@@ -98,6 +102,8 @@ static void redisLibevAddWrite(void *privdata) {
         e->writing = 1;
 	    fprintf(stderr, "libev trigger write\n");
         ev_io_start(EV_A_ &e->wev);
+    } else {
+        fprintf(stderr, "in writing, do nothing\n");
     }
 }
 

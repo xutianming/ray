@@ -158,10 +158,10 @@ int main(int argc, char *argv[]) {
   boost::asio::signal_set signals(main_service, SIGTERM);
   signals.async_wait(handler);
   signal(SIGPIPE, SIG_IGN);
-  std::thread ev_thread = std::thread([this] {
+  std::thread ev_thread = std::thread([] {
     RAY_LOG(DEBUG) << "ev loop start";
 	  while(true) {
-	    ev_run(EV_DEFAULT_ EVRUN_NOWAIT);
+	    ev_run(EV_DEFAULT_ EVRUN_ONCE);
 	  }
   });
 
