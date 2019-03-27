@@ -87,7 +87,7 @@ static void redisLibevDelRead(void *privdata) {
     if (e->reading) {
         e->reading = 0;
         fprintf(stderr, "libev stop read\n");
-        ev_io_stop(EV_A_ &e->rev);
+        //ev_io_stop(EV_A_ &e->rev);
     }
 }
 
@@ -124,7 +124,7 @@ static void redisLibevCleanup(void *privdata) {
 }
 
 static int redisLibevAttach(EV_P_ redisAsyncContext *ac) {
-    redisContext *c = &(ac->c);
+    //redisContext *c = &(ac->c);
     redisLibevEvents *e;
 
     /* Nothing should be attached when something is already attached */
@@ -155,6 +155,8 @@ static int redisLibevAttach(EV_P_ redisAsyncContext *ac) {
     /* Initialize read/write events */
     ev_async_init(&e->rev,redisLibevReadEvent);
     ev_async_init(&e->wev,redisLibevWriteEvent);
+    ev_async_start(loop, &e->rev);
+    ev_async_start(loop, &e->wev);
     return REDIS_OK;
 }
 
