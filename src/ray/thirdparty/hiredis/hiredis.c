@@ -816,7 +816,7 @@ int redisBufferRead(redisContext *c) {
             return REDIS_ERR;
         }
     }
-    fprintf(stderr, "finish read data into buffer\n");
+    //fprintf(stderr, "finish read data into buffer\n");
     return REDIS_OK;
 }
 
@@ -855,7 +855,7 @@ int redisBufferWrite(redisContext *c, int *done) {
         }
     }
     if (done != NULL) *done = (sdslen(c->obuf) == 0);
-    fprintf(stderr, "finish write buffer\n");
+    //fprintf(stderr, "finish write buffer\n");
     return REDIS_OK;
 }
 
@@ -907,7 +907,7 @@ int redisGetReply(redisContext *c, void **reply) {
  * the reply (or replies in pub/sub).
  */
 int __redisAppendCommand(redisContext *c, const char *cmd, size_t len) {
-    fprintf(stderr, "append cmd to output buffer: %s\n", cmd);
+    //fprintf(stderr, "append cmd to output buffer: %s\n", cmd);
 	sds newbuf;
 
     newbuf = sdscatlen(c->obuf,cmd,len);
