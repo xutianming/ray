@@ -38,6 +38,15 @@ Command<ReplyT>::Command(Redox *rdx, long id, const vector<string> &cmd,
   timer_guard_.lock();
 }
 
+template <class ReplyT>
+Command<ReplyT>::Command(Redox *rdx, long id, RayCmd* cmd,
+                         const function<void(Command<ReplyT> &)> &callback, double repeat,
+                         double after, bool free_memory, log::Logger &logger)
+    : rdx_(rdx), id_(id), ray_cmd_(cmd), repeat_(repeat), after_(after), free_memory_(free_memory),
+      callback_(callback), last_error_(), logger_(logger) {
+  timer_guard_.lock();
+}
+
 template <class ReplyT> void Command<ReplyT>::wait() {
   unique_lock<mutex> lk(waiter_lock_);
   waiter_.wait(lk, [this]() { return waiting_done_.load(); });

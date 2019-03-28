@@ -27,7 +27,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <atomic>
-
+#include <unistd.h>
 #include <string>
 #include <queue>
 #include <set>
@@ -41,11 +41,25 @@
 #include "utils/logger.hpp"
 #include "command.hpp"
 
+
 namespace redox {
 
 static const std::string REDIS_DEFAULT_HOST = "localhost";
 static const int REDIS_DEFAULT_PORT = 6379;
 static const std::string REDIS_DEFAULT_PATH = "/var/run/redis/redis.sock";
+
+class RayCmd {
+public:
+  std::string redis_command;
+  uint8_t *id;
+  size_t id_size;
+  uint8_t *data;
+  int64_t length;
+  int prefix;
+  int pubsub_channel;
+  RayCmd() {};
+  ~RayCmd() {};
+};
 
 /**
 * Redox is a Redis client for C++. It provides a synchronous and asynchronous
@@ -131,6 +145,9 @@ public:
   void command(const std::vector<std::string> &cmd,
                const std::function<void(Command<ReplyT> &)> &callback = nullptr);
 
+  template <class ReplyT>
+  void command(RayCmd* cmd,
+               const std::function<void(Command<ReplyT> &)> &callback = nullptr);
   /**
   * Asynchronously runs a command and ignores any errors or replies.
   */
@@ -249,6 +266,11 @@ private:
   Command<ReplyT> &createCommand(const std::vector<std::string> &cmd,
                                  const std::function<void(Command<ReplyT> &)> &callback = nullptr,
                                  double repeat = 0.0, double after = 0.0, bool free_memory = true);
+
+  template <class ReplyT>
+  Command<ReplyT> &createCommand(RayCmd *cmd,
+                                const std::function<void(Command<ReplyT> &)> &callback = nullptr,
+                                double repeat = 0.0, double after = 0.0, bool free_memory = true);
 
   // Setup code for the constructors
   // Return true on success, false on failure
@@ -424,9 +446,41 @@ Command<ReplyT> &Redox::createCommand(const std::vector<std::string> &cmd,
 }
 
 template <class ReplyT>
+Command<ReplyT> &Redox::createCommand(RayCmd *cmd,
+                                      const std::function<void(Command<ReplyT> &)> &callback,
+                                      double repeat, double after, bool free_memory) {
+  {
+    std::unique_lock<std::mutex> ul(running_lock_);
+    if (!running_) {
+      throw std::runtime_error("[ERROR] Need to connect Redox before running commands!");
+    }
+  }
+
+  auto *c = new Command<ReplyT>(this, commands_created_.fetch_add(1), cmd, 
+                                callback, repeat, after, free_memory, logger_);
+
+  std::lock_guard<std::mutex> lg(queue_guard_);
+  std::lock_guard<std::mutex> lg2(command_map_guard_);
+
+  getCommandMap<ReplyT>()[c->id_] = c;
+  command_queue_.push(c->id_);
+
+  // Signal the event loop to process this command
+  ev_async_send(evloop_, &watcher_command_);
+
+  return *c;
+}
+
+template <class ReplyT>
 void Redox::command(const std::vector<std::string> &cmd,
                     const std::function<void(Command<ReplyT> &)> &callback) {
   createCommand(cmd, callback);
+}
+
+template <class ReplyT>
+void Redox::command(RayCmd* cmd,
+                    const std::function<void(Command<ReplyT> &)> &callback) {
+  createCommand(cmd, callback);                    
 }
 
 template <class ReplyT>

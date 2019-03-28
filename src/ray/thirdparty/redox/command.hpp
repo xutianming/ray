@@ -34,7 +34,7 @@
 namespace redox {
 
 class Redox;
-
+class RayCmd;
 /**
 * The Command class represents a single command string to be sent to
 * a Redis server, for both synchronous and asynchronous usage. It manages
@@ -99,9 +99,13 @@ public:
   const double repeat_;
   const double after_;
   const bool free_memory_;
+  RayCmd *ray_cmd_;
 
 private:
   Command(Redox *rdx, long id, const std::vector<std::string> &cmd,
+          const std::function<void(Command<ReplyT> &)> &callback, double repeat, double after,
+          bool free_memory, log::Logger &logger);
+  Command(Redox *rdx, long id, RayCmd *cmd,
           const std::function<void(Command<ReplyT> &)> &callback, double repeat, double after,
           bool free_memory, log::Logger &logger);
 
@@ -158,6 +162,7 @@ private:
   // Passed on from Redox class
   log::Logger &logger_;
 
+  
   // Explicitly delete copy constructor and assignment operator,
   // Command objects should never be copied because they hold
   // state with a network resource.

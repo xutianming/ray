@@ -403,13 +403,28 @@ template <class ReplyT> bool Redox::submitToServer(Command<ReplyT> *c) {
     return false;
   }
   */
-  fprintf(stderr, "redox submit to server: %s\n", c->cmd_[0].c_str());
-  if (redisAsyncFormattedCommand(rdx->ctx_, commandCallback<ReplyT>, (void *)c->id_, c->cmd_[0].c_str(),
-                                 c->cmd_[0].size()) != REDIS_OK) {
-    rdx->logger_.error() << "Could not send \"" << c->cmd() << "\": " << rdx->ctx_->errstr;
-    c->reply_status_ = Command<ReplyT>::SEND_ERROR;
-    c->invoke();
-    return false;
+  //fprintf(stderr, "redox submit to server: %s\n", c->cmd_[0].c_str());
+  if (c->ray_cmd_->length > 0) {
+    fprintf(stderr, "redox submit to server: %s\n", c->ray_cmd_->redis_command.c_str());
+    if (redisAsyncCommand(rdx->ctx_, commandCallback<ReplyT>, (void *)c->id_, c->ray_cmd_->redis_command.c_str(),
+                          c->ray_cmd_->prefix, c->ray_cmd_->pubsub_channel,
+                          c->ray_cmd_->id, c->ray_cmd_->id_size,
+                          c->ray_cmd_->data, c->ray_cmd_->length) != REDIS_OK) {
+      rdx->logger_.error() << "Could not send \"" << c->cmd() << "\": " << rdx->ctx_->errstr;
+      c->reply_status_ = Command<ReplyT>::SEND_ERROR;
+      c->invoke();
+      return false;
+    }
+  } else {
+    fprintf(stderr, "redox submit to server: %s\n", c->ray_cmd_->redis_command.c_str());
+    if (redisAsyncCommand(rdx->ctx_, commandCallback<ReplyT>, (void *)c->id_, c->ray_cmd_->redis_command.c_str(),
+                          c->ray_cmd_->prefix, c->ray_cmd_->pubsub_channel,
+                          c->ray_cmd_->id, c->ray_cmd_->id_size) != REDIS_OK) {
+      rdx->logger_.error() << "Could not send \"" << c->cmd() << "\": " << rdx->ctx_->errstr;
+      c->reply_status_ = Command<ReplyT>::SEND_ERROR;
+      c->invoke();
+      return false;
+    }
   }
   return true;
 }
