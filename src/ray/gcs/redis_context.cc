@@ -217,7 +217,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
                               const uint8_t *data, int64_t length,
                               const TablePrefix prefix, const TablePubsub pubsub_channel,
                               RedisCallback redisCallback, int log_length) {
-  RAY_LOG(DEBUG) << "redis cmd: " << command << " prefix: " << prefix;
+  RAY_LOG(DEBUG) << "redis cmd: " << command << " prefix: " << static_cast<int>(prefix);
   int64_t callback_index =
       redisCallback != nullptr ? RedisCallbackManager::instance().add(redisCallback) : -1;
   if (length > 0) {
