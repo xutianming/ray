@@ -251,7 +251,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
       RAY_LOG(DEBUG) << "formatted command: " << std::string(cmd) << "\n";
       std::vector<std::string> cmds;
       cmds.push_back(std::string(cmd));
-      rdx_->command<std::string>(cmd, [callback_index](redox::Command<string>& c) {
+      rdx_->command<std::string>(cmds, [callback_index](redox::Command<std::string>& c) {
         RAY_LOG(DEBUG) << "Redox callback invoked";
         ProcessCallback(callback_index, c.reply());
       });

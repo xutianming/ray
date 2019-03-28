@@ -5,7 +5,7 @@
 *   http://vilipetek.com/2014/04/17/thread-safe-simple-logger-in-c11/
 */
 
-#include "utils/logger.hpp"
+#include "logger.hpp"
 #include <iostream>
 #include <iomanip>
 
