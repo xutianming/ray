@@ -88,18 +88,25 @@ AsyncGcsClient::AsyncGcsClient(const std::string &address, int port,
     std::vector<int> ports;
     GetRedisShards(primary_context_->sync_context(), addresses, ports);
     if (addresses.size() == 0 || ports.size() == 0) {
+      RAY_LOG(DEBUG) << "Redis shard not found";
       addresses.push_back(address);
       ports.push_back(port);
     }
 
     // Populate shard_contexts.
     for (size_t i = 0; i < addresses.size(); ++i) {
+      RAY_LOG(DEBUG) << "shard address: " << addresses[i] << " ports:" << ports[i];
       shard_contexts_.push_back(std::make_shared<RedisContext>());
       libev_shard_contexts_.push_back(std::make_shared<RedisContext>(rdx_));
     }
 
     RAY_CHECK(shard_contexts_.size() == addresses.size());
     for (size_t i = 0; i < addresses.size(); ++i) {
+      if (rdx_->connect(addresses[i], ports[i])) {
+        RAY_LOG(DEBUG) << "Redox connected to " << addresses[i] << ":" << ports[i];
+      } else {
+        RAY_LOG(DEBUG) << "Redox not connected.";
+      };
       RAY_CHECK_OK(shard_contexts_[i]->Connect(addresses[i], ports[i], /*sharding=*/true,
                                                /*password=*/password));
       RAY_CHECK_OK(libev_shard_contexts_[i]->Connect(addresses[i], ports[i], /*sharding=*/true,
@@ -131,11 +138,7 @@ AsyncGcsClient::AsyncGcsClient(const std::string &address, int port,
   // we need to make sure that we are attached to an event loop first. This
   // currently isn't possible because the aeEventLoop, which we use for
   // testing, requires us to connect to Redis first.
-  if (rdx_->connect(address, port)) {
-    RAY_LOG(DEBUG) << "Redox connected.";
-  } else {
-    RAY_LOG(DEBUG) << "Redox not connected.";
-  };
+  
 }
 
 #if RAY_USE_NEW_GCS
