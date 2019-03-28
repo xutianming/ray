@@ -96,10 +96,10 @@ public:
   Redox *const rdx_;
   const long id_;
   const std::vector<std::string> cmd_;
+  RayCmd *ray_cmd_;
   const double repeat_;
   const double after_;
   const bool free_memory_;
-  RayCmd *ray_cmd_;
 
 private:
   Command(Redox *rdx, long id, const std::vector<std::string> &cmd,

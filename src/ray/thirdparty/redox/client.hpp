@@ -51,9 +51,9 @@ static const std::string REDIS_DEFAULT_PATH = "/var/run/redis/redis.sock";
 class RayCmd {
 public:
   std::string redis_command;
-  uint8_t *id;
+  const uint8_t *id;
   size_t id_size;
-  uint8_t *data;
+  const uint8_t *data;
   int64_t length;
   int prefix;
   int pubsub_channel;

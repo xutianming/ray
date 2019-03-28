@@ -233,7 +233,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
     } else {
       if (prefix == TablePrefix::OBJECT) {
         RAY_LOG(DEBUG) << "object add, use redox";
-        redox::RayCmd *raycmd = new RayCmd();
+        redox::RayCmd *raycmd = new redox::RayCmd();
         raycmd->redis_command = command + " %d %d %b %b";
         raycmd->id = id.data();
         raycmd->id_size = id.size();
@@ -260,7 +260,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
     if (prefix == TablePrefix::OBJECT) {
       RAY_LOG(DEBUG) << "object query, use redox";
       
-      redox::RayCmd *raycmd = new RayCmd();
+      redox::RayCmd *raycmd = new redox::RayCmd();
       raycmd->redis_command = command + " %d %d %b";
       raycmd->id = id.data();
       raycmd->id_size = id.size();
