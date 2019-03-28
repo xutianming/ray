@@ -30,7 +30,7 @@ RedisAsioClient::RedisAsioClient(boost::asio::io_service &io_service,
 
 void RedisAsioClient::operate() {
   if (read_requested_ && !read_in_progress_) {
-    RAY_LOG(DEBUG) << "asio read";
+    //RAY_LOG(DEBUG) << "asio read";
 	  read_in_progress_ = true;
     socket_.async_read_some(boost::asio::null_buffers(),
                             boost::bind(&RedisAsioClient::handle_read, this,
@@ -38,7 +38,7 @@ void RedisAsioClient::operate() {
   }
 
   if (write_requested_ && !write_in_progress_) {
-    RAY_LOG(DEBUG) << "asio write";
+    //RAY_LOG(DEBUG) << "asio write";
     write_in_progress_ = true;
     socket_.async_write_some(boost::asio::null_buffers(),
                              boost::bind(&RedisAsioClient::handle_write, this,

@@ -3,6 +3,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Werror -std=c++11")
 
 include_directories(thirdparty/ae)
 
+set(REDOX_SRCS
+  ${CMAKE_CURRENT_LIST_DIR}/thirdparty/redox/client.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/thirdparty/redox/command.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/thirdparty/redox/subscriber.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/thirdparty/redox/utils/logger.cpp
+)
+
 set(HIREDIS_SRCS
   ${CMAKE_CURRENT_LIST_DIR}/thirdparty/hiredis/async.c
   ${CMAKE_CURRENT_LIST_DIR}/thirdparty/hiredis/dict.c
@@ -87,7 +94,7 @@ install(
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig/")
 
 ADD_RAY_LIB(ray
-  SOURCES ${RAY_SRCS} ${HIREDIS_SRCS} ${UTIL_SRCS}
+  SOURCES ${RAY_SRCS} ${HIREDIS_SRCS} ${UTIL_SRCS} ${REDOX_SRCS}
     DEPENDENCIES ${RAY_LIB_DEPENDENCIES}
     SHARED_LINK_LIBS ""
     STATIC_LINK_LIBS ${RAY_LIB_STATIC_LINK_LIBS})

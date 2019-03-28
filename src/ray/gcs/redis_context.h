@@ -10,6 +10,7 @@
 #include "ray/util/logging.h"
 
 #include "ray/gcs/format/gcs_generated.h"
+#include "ray/thirdparty/redox/redox.hpp"
 
 struct redisContext;
 struct redisAsyncContext;
@@ -50,6 +51,8 @@ class RedisContext {
  public:
   RedisContext()
       : context_(nullptr), async_context_(nullptr), subscribe_context_(nullptr) {}
+  RedisContext(redox::Redox &rdx)
+      : rdx_(rdx), context_(nullptr), async_context_(nullptr), subscribe_context_(nullptr) {}
   ~RedisContext();
   Status Connect(const std::string &address, int port, bool sharding,
                  const std::string &password);
@@ -97,6 +100,7 @@ class RedisContext {
   redisContext *context_;
   redisAsyncContext *async_context_;
   redisAsyncContext *subscribe_context_;
+  redox::Redox rdx_;
 };
 
 }  // namespace gcs

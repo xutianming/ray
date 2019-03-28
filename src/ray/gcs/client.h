@@ -10,6 +10,7 @@
 #include "ray/id.h"
 #include "ray/status.h"
 #include "ray/util/logging.h"
+#include "ray/thirdparty/redox/redox.hpp"
 
 namespace ray {
 
@@ -106,6 +107,7 @@ class RAY_EXPORT AsyncGcsClient {
   std::unique_ptr<RedisAsioClient> asio_async_auxiliary_client_;
   std::unique_ptr<RedisAsioClient> asio_subscribe_auxiliary_client_;
   CommandType command_type_;
+  redox::Redox rdx_;
 };
 
 class SyncGcsClient {

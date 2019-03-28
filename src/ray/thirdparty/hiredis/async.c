@@ -553,11 +553,11 @@ void redisAsyncHandleWrite(redisAsyncContext *ac) {
     } else {
         /* Continue writing when not done, stop writing otherwise */
         if (!done) {
-            //fprintf(stderr, "do not finish writing, add write again\n");
+            fprintf(stderr, "do not finish writing, add write again\n");
             _EL_ADD_WRITE(ac);
         }
         else {
-			//fprintf(stderr, "finish writing, del write\n");
+			fprintf(stderr, "finish writing, del write\n");
             _EL_DEL_WRITE(ac);
         }
         /* Always schedule reads after writes */
@@ -585,7 +585,7 @@ static const char *nextArgument(const char *start, const char **str, size_t *len
  * formatted command to the output buffer and registers the provided callback
  * function with the context. */
 static int __redisAsyncCommand(redisAsyncContext *ac, redisCallbackFn *fn, void *privdata, const char *cmd, size_t len) {
-    //fprintf(stderr, "exec cmd: %s\n", cmd);
+    fprintf(stderr, "exec cmd: %s\n", cmd);
 	redisContext *c = &(ac->c);
     redisCallback cb;
     int pvariant, hasnext;

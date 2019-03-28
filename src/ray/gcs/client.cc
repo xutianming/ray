@@ -94,7 +94,7 @@ AsyncGcsClient::AsyncGcsClient(const std::string &address, int port,
     // Populate shard_contexts.
     for (size_t i = 0; i < addresses.size(); ++i) {
       shard_contexts_.push_back(std::make_shared<RedisContext>());
-      libev_shard_contexts_.push_back(std::make_shared<RedisContext>());
+      libev_shard_contexts_.push_back(std::make_shared<RedisContext>(rdx_));
     }
 
     RAY_CHECK(shard_contexts_.size() == addresses.size());
@@ -130,6 +130,11 @@ AsyncGcsClient::AsyncGcsClient(const std::string &address, int port,
   // we need to make sure that we are attached to an event loop first. This
   // currently isn't possible because the aeEventLoop, which we use for
   // testing, requires us to connect to Redis first.
+  if (rdx_.connect(address, port)) {
+    RAY_LOG(DEBUG) << "Redox connected.";
+  } else {
+    RAY_LOG(DEBUG) << "Redox not connected.";
+  };
 }
 
 #if RAY_USE_NEW_GCS
@@ -181,19 +186,21 @@ Status AsyncGcsClient::Attach(boost::asio::io_service &io_service) {
   
   
   for (std::shared_ptr<RedisContext> context : libev_shard_contexts_) {
+    /**
 	  if (redisLibevAttach(EV_DEFAULT_ context->async_context()) != REDIS_OK) {
 	    RAY_LOG(DEBUG) << "libev attach failed";	
 	  } else {
 		  RAY_LOG(DEBUG) << "libev attach ok";
 	  }
+    */
 	  //redisLibevAttach(EV_DEFAULT_ context->subscribe_context());
     //new RedisAsioClient(io_service, context->async_context());
 	  new RedisAsioClient(io_service, context->subscribe_context());
   }
   // events to connect to redis
-  ev_run(EV_DEFAULT_ EVRUN_ONCE);
-  ev_run(EV_DEFAULT_ EVRUN_NOWAIT);
-  RAY_LOG(DEBUG) << "attach to redis ready.";
+  //ev_run(EV_DEFAULT_ EVRUN_ONCE);
+  //ev_run(EV_DEFAULT_ EVRUN_NOWAIT);
+  //RAY_LOG(DEBUG) << "attach to redis ready.";
   return Status::OK();
 }
 
