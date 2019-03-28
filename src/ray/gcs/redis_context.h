@@ -51,7 +51,7 @@ class RedisContext {
  public:
   RedisContext()
       : context_(nullptr), async_context_(nullptr), subscribe_context_(nullptr) {}
-  RedisContext(redox::Redox &rdx)
+  RedisContext(redox::Redox *rdx)
       : rdx_(rdx), context_(nullptr), async_context_(nullptr), subscribe_context_(nullptr) {}
   ~RedisContext();
   Status Connect(const std::string &address, int port, bool sharding,
@@ -97,10 +97,10 @@ class RedisContext {
   redisAsyncContext *subscribe_context() { return subscribe_context_; };
 
  private:
+  redox::Redox *rdx_;
   redisContext *context_;
   redisAsyncContext *async_context_;
   redisAsyncContext *subscribe_context_;
-  redox::Redox rdx_;
 };
 
 }  // namespace gcs

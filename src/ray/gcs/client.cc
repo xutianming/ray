@@ -2,7 +2,7 @@
 
 #include "ray/gcs/redis_context.h"
 #include "ray/ray_config.h"
-#include "ray/thirdparty/hiredis/adapters/libev_async.h"
+#include "ray/thirdparty/hiredis/adapters/libev.h"
 
 static void GetRedisShards(redisContext *context, std::vector<std::string> &addresses,
                            std::vector<int> &ports) {
@@ -75,6 +75,7 @@ AsyncGcsClient::AsyncGcsClient(const std::string &address, int port,
                                const ClientID &client_id, CommandType command_type,
                                bool is_test_client = false,
                                const std::string &password = "") {
+  rdx_ = new redox::Redox();
   primary_context_ = std::make_shared<RedisContext>();
 
   RAY_CHECK_OK(
@@ -130,7 +131,7 @@ AsyncGcsClient::AsyncGcsClient(const std::string &address, int port,
   // we need to make sure that we are attached to an event loop first. This
   // currently isn't possible because the aeEventLoop, which we use for
   // testing, requires us to connect to Redis first.
-  if (rdx_.connect(address, port)) {
+  if (rdx_->connect(address, port)) {
     RAY_LOG(DEBUG) << "Redox connected.";
   } else {
     RAY_LOG(DEBUG) << "Redox not connected.";
