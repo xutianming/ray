@@ -231,13 +231,30 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
         return Status::RedisError(std::string(async_context_->errstr));
       }
     } else {
-      std::string redis_command = command + " %d %d %b %b";
-      int status = redisAsyncCommand(
-          async_context_, reinterpret_cast<redisCallbackFn *>(&GlobalRedisCallback),
-          reinterpret_cast<void *>(callback_index), redis_command.c_str(), prefix,
-          pubsub_channel, id.data(), id.size(), data, length);
-      if (status == REDIS_ERR) {
-        return Status::RedisError(std::string(async_context_->errstr));
+      if (prefix == TablePrefix::OBJECT) {
+        RAY_LOG(DEBUG) << "object add, use redox";
+        std::string redis_command = command + " %d %d %b %b";
+        char *cmd;
+        int len = redisFormatCommand(&cmd, redis_command.c_str(), prefix, pubsub_channel, id.data(), id.size(), data, length);
+        if (len <= 0) {
+          RAY_LOG(DEBUG) << "redisFormatCommand bad result";
+        }
+        RAY_LOG(DEBUG) << "formatted command: " << std::string(cmd) << "\n";
+        std::vector<std::string> cmds;
+        cmds.push_back(std::string(cmd));
+        rdx_->command<std::string>(cmds, [callback_index](redox::Command<std::string>& c) {
+          RAY_LOG(DEBUG) << "Redox callback invoked";
+          ProcessCallback(callback_index, c.reply());
+        });
+      } else {
+        std::string redis_command = command + " %d %d %b %b";
+        int status = redisAsyncCommand(
+            async_context_, reinterpret_cast<redisCallbackFn *>(&GlobalRedisCallback),
+            reinterpret_cast<void *>(callback_index), redis_command.c_str(), prefix,
+            pubsub_channel, id.data(), id.size(), data, length);
+        if (status == REDIS_ERR) {
+          return Status::RedisError(std::string(async_context_->errstr));
+        }
       }
     }
   } else {
