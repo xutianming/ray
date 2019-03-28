@@ -232,7 +232,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
       }
     } else {
       if (prefix == TablePrefix::OBJECT) {
-        RAY_LOG(DEBUG) << "object add, use redox";
+        RAY_LOG(DEBUG) << "object add, use redox, write " << length << " data";
         redox::RayCmd *raycmd = new redox::RayCmd();
         raycmd->redis_command = command + " %d %d %b %b";
         raycmd->id = id.data();
@@ -242,7 +242,9 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
         raycmd->prefix = static_cast<int>(prefix);
         raycmd->pubsub_channel = static_cast<int>(pubsub_channel);
         rdx_->command<std::string>(raycmd, [callback_index](redox::Command<std::string>& c) {
-          RAY_LOG(DEBUG) << "Redox callback invoked";
+          RAY_LOG(DEBUG) << "Redox write callback invoked, reply status " << c.status()
+                         << "reply value: " << c.reply();
+          
           ProcessCallback(callback_index, c.reply());
         });
       } else {
@@ -270,7 +272,8 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
       raycmd->pubsub_channel = static_cast<int>(pubsub_channel);
 
       rdx_->command<std::string>(raycmd, [callback_index](redox::Command<std::string>& c) {
-        RAY_LOG(DEBUG) << "Redox callback invoked";
+        RAY_LOG(DEBUG) << "Redox query callback invoked, reply status " << c.status()
+                         << "reply value: " << c.reply();
         ProcessCallback(callback_index, c.reply());
       });
       //free(cmd);

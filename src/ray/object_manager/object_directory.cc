@@ -20,6 +20,7 @@ void UpdateObjectLocations(const GcsTableNotificationMode notification_mode,
   // addition or deletion.
   for (const auto &object_table_data : location_updates) {
     ClientID client_id = ClientID::from_binary(object_table_data.manager);
+    RAY_LOG(DEBUG) << "Update Obj Location: " << client_id;
     if (notification_mode != GcsTableNotificationMode::REMOVE) {
       client_ids->insert(client_id);
     } else {
@@ -214,7 +215,7 @@ ray::Status ObjectDirectory::LookupLocations(const ObjectID &object_id,
         JobID::nil(), object_id,
         [this, callback](gcs::AsyncGcsClient *client, const ObjectID &object_id,
                          const std::vector<ObjectTableDataT> &location_updates) {
-          RAY_LOG(DEBUG) << "found locations for: " << object_id; 
+          RAY_LOG(DEBUG) << "found locations for: " << object_id << " " << location_updates.size() << " found"; 
 		      // Build the set of current locations based on the entries in the log.
           std::unordered_set<ClientID> client_ids;
           UpdateObjectLocations(GcsTableNotificationMode::APPEND_OR_ADD, location_updates,

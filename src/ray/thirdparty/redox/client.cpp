@@ -405,7 +405,7 @@ template <class ReplyT> bool Redox::submitToServer(Command<ReplyT> *c) {
   */
   //fprintf(stderr, "redox submit to server: %s\n", c->cmd_[0].c_str());
   if (c->ray_cmd_->length > 0) {
-    fprintf(stderr, "redox write to server: %s\n", c->ray_cmd_->redis_command.c_str());
+    //fprintf(stderr, "redox write to server: %s\n", c->ray_cmd_->redis_command.c_str());
     if (redisAsyncCommand(rdx->ctx_, commandCallback<ReplyT>, (void *)c->id_, c->ray_cmd_->redis_command.c_str(),
                           c->ray_cmd_->prefix, c->ray_cmd_->pubsub_channel,
                           c->ray_cmd_->id, c->ray_cmd_->id_size,
@@ -416,7 +416,7 @@ template <class ReplyT> bool Redox::submitToServer(Command<ReplyT> *c) {
       return false;
     }
   } else {
-    fprintf(stderr, "redox query from server: %s\n", c->ray_cmd_->redis_command.c_str());
+    //fprintf(stderr, "redox query from server: %s\n", c->ray_cmd_->redis_command.c_str());
     if (redisAsyncCommand(rdx->ctx_, commandCallback<ReplyT>, (void *)c->id_, c->ray_cmd_->redis_command.c_str(),
                           c->ray_cmd_->prefix, c->ray_cmd_->pubsub_channel,
                           c->ray_cmd_->id, c->ray_cmd_->id_size) != REDIS_OK) {

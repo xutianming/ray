@@ -93,6 +93,7 @@ Status Log<ID, Data>::Lookup(const JobID &job_id, const ID &id, const Callback &
       std::vector<DataT> results;
       if (!data.empty()) {
         auto root = flatbuffers::GetRoot<GcsTableEntry>(data.data());
+        RAY_LOG(DEBUG) << "Log lookup callback: " << root->entries()->size() <<" found";
         RAY_CHECK(from_flatbuf<ID>(*root->id()) == id);
         for (size_t i = 0; i < root->entries()->size(); i++) {
           DataT result;
@@ -100,6 +101,8 @@ Status Log<ID, Data>::Lookup(const JobID &job_id, const ID &id, const Callback &
           data_root->UnPackTo(&result);
           results.emplace_back(std::move(result));
         }
+      } else {
+        RAY_LOG(DEBUG) << "Lookup data empty: " << id;
       }
       lookup(client_, id, results);
     }
