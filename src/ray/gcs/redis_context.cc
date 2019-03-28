@@ -273,6 +273,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
         RAY_LOG(DEBUG) << "Redox callback invoked";
         ProcessCallback(callback_index, c.reply());
       });
+      //free(cmd);
 
     } else {
       RAY_CHECK(log_length == -1);

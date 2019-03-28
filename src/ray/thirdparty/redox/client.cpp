@@ -21,6 +21,7 @@
 #include <signal.h>
 #include <algorithm>
 #include "client.hpp"
+#include "stdio.h"
 
 using namespace std;
 
@@ -383,6 +384,7 @@ template <class ReplyT> bool Redox::submitToServer(Command<ReplyT> *c) {
   Redox *rdx = c->rdx_;
   c->pending_++;
 
+  /**
   // Construct a char** from the vector
   vector<const char *> argv;
   transform(c->cmd_.begin(), c->cmd_.end(), back_inserter(argv),
@@ -392,7 +394,7 @@ template <class ReplyT> bool Redox::submitToServer(Command<ReplyT> *c) {
   vector<size_t> argvlen;
   transform(c->cmd_.begin(), c->cmd_.end(), back_inserter(argvlen),
             [](const string &s) { return s.size(); });
-
+  
   if (redisAsyncCommandArgv(rdx->ctx_, commandCallback<ReplyT>, (void *)c->id_, argv.size(),
                             &argv[0], &argvlen[0]) != REDIS_OK) {
     rdx->logger_.error() << "Could not send \"" << c->cmd() << "\": " << rdx->ctx_->errstr;
@@ -400,7 +402,15 @@ template <class ReplyT> bool Redox::submitToServer(Command<ReplyT> *c) {
     c->invoke();
     return false;
   }
-
+  */
+  fprintf(stderr, "redox submit to server: %s\n", c->cmd_.c_str());
+  if (redisAsyncFormattedCommand(rdx->ctx_, commandCallback<ReplyT>, (void *)c->id_, c->cmd_.c_str(),
+                                 c->cmd_.size()) != REDIS_OK) {
+    rdx->logger_.error() << "Could not send \"" << c->cmd() << "\": " << rdx->ctx_->errstr;
+    c->reply_status_ = Command<ReplyT>::SEND_ERROR;
+    c->invoke();
+    return false;
+  }
   return true;
 }
 
