@@ -403,9 +403,9 @@ template <class ReplyT> bool Redox::submitToServer(Command<ReplyT> *c) {
     return false;
   }
   */
-  fprintf(stderr, "redox submit to server: %s\n", c->cmd_.c_str());
-  if (redisAsyncFormattedCommand(rdx->ctx_, commandCallback<ReplyT>, (void *)c->id_, c->cmd_.c_str(),
-                                 c->cmd_.size()) != REDIS_OK) {
+  fprintf(stderr, "redox submit to server: %s\n", c->cmd_[0].c_str());
+  if (redisAsyncFormattedCommand(rdx->ctx_, commandCallback<ReplyT>, (void *)c->id_, c->cmd_[0].c_str(),
+                                 c->cmd_[0].size()) != REDIS_OK) {
     rdx->logger_.error() << "Could not send \"" << c->cmd() << "\": " << rdx->ctx_->errstr;
     c->reply_status_ = Command<ReplyT>::SEND_ERROR;
     c->invoke();
