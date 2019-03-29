@@ -264,7 +264,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
       //}
     }
   } else {
-    
+    /*
     if (prefix == TablePrefix::OBJECT) {
       RAY_LOG(DEBUG) << "object query, use redox id: " << id;
       
@@ -286,7 +286,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
       //free(cmd);
 
     } else {
-    
+    */
       RAY_CHECK(log_length == -1);
       std::string redis_command = command + " %d %d %b";
       int status = redisAsyncCommand(
@@ -297,7 +297,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
         return Status::RedisError(std::string(async_context_->errstr));
       }
 	    RAY_LOG(DEBUG) << "Redis err msg: " << std::string(async_context_->errstr);
-    }
+  //  }
   }
   return Status::OK();
 }
