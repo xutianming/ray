@@ -217,8 +217,8 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
                               const uint8_t *data, int64_t length,
                               const TablePrefix prefix, const TablePubsub pubsub_channel,
                               RedisCallback redisCallback, int log_length) {
-  RAY_LOG(DEBUG) << "redis cmd: " << command << " prefix: " << static_cast<int>(prefix)
-                 << " id: " << id;
+  //RAY_LOG(DEBUG) << "redis cmd: " << command << " prefix: " << static_cast<int>(prefix)
+  //               << " id: " << id;
   
   int64_t callback_index = -1;
   if (length > 0 || prefix !=  TablePrefix::OBJECT) {
@@ -267,7 +267,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
       //}
     }
   } else {
-    if (prefix == TablePrefix::OBJECT) {
+    if (prefix == TablePrefix::OBJECT && redis_command == "RAY.TABLE_LOOKUP") {
       RAY_LOG(DEBUG) << "object query, use redox id: " << id;
       redox::RayCmd *raycmd = new redox::RayCmd();
       raycmd->redis_command = command + " %d %d %b";
