@@ -221,9 +221,9 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
   //               << " id: " << id;
   
   int64_t callback_index = -1;
-  if (length > 0 || prefix !=  TablePrefix::OBJECT || command != "RAY.TABLE_LOOKUP") {
+  //if (length > 0 || prefix !=  TablePrefix::OBJECT || command != "RAY.TABLE_LOOKUP") {
       callback_index = redisCallback != nullptr ? RedisCallbackManager::instance().add(redisCallback) : -1;
-  }
+  //}
   if (length > 0) {
     if (log_length >= 0) {
       std::string redis_command = command + " %d %d %b %b %d";
@@ -267,6 +267,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
       //}
     }
   } else {
+    /**
     if (prefix == TablePrefix::OBJECT && command == "RAY.TABLE_LOOKUP") {
       RAY_LOG(DEBUG) << "object query, use redox id: " << id;
       redox::RayCmd *raycmd = new redox::RayCmd();
@@ -286,7 +287,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
       });
       //free(cmd);
     } else {
-    
+    */
       RAY_CHECK(log_length == -1);
       std::string redis_command = command + " %d %d %b";
       int status = redisAsyncCommand(
@@ -297,7 +298,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
         return Status::RedisError(std::string(async_context_->errstr));
       }
 	    RAY_LOG(DEBUG) << "Redis err msg: " << std::string(async_context_->errstr);
-    }
+    //}
   }
   return Status::OK();
 }
