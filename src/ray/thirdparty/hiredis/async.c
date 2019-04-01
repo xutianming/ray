@@ -247,6 +247,28 @@ static int __redisPushCallback(redisCallbackList *list, redisCallback *source) {
     return REDIS_OK;
 }
 
+static int __redisPushCallbackRedox(redisCallbackList *list, redisCallback *source) {
+    redisCallback *cb;
+
+    /* Copy callback from stack to heap */
+    cb = malloc(sizeof(*cb));
+    if (cb == NULL)
+        return REDIS_ERR_OOM;
+
+    if (source != NULL) {
+        memcpy(cb,source,sizeof(*cb));
+        cb->next = NULL;
+    }
+
+    /* Store callback in list */
+    if (list->head == NULL)
+        list->head = cb;
+    if (list->tail != NULL)
+        list->tail->next = cb;
+    list->tail = cb;
+    return REDIS_OK;
+}
+
 static int __redisShiftCallback(redisCallbackList *list, redisCallback *target) {
     redisCallback *cb = list->head;
     if (cb != NULL) {
@@ -652,6 +674,74 @@ static int __redisAsyncCommand(redisAsyncContext *ac, redisCallbackFn *fn, void 
     return REDIS_OK;
 }
 
+static int __redisAsyncCommandRedox(redisAsyncContext *ac, redisCallbackFn *fn, void *privdata, const char *cmd, size_t len) {
+    //fprintf(stderr, "exec cmd: %s\n", cmd);
+	redisContext *c = &(ac->c);
+    redisCallback cb;
+    int pvariant, hasnext;
+    const char *cstr, *astr;
+    size_t clen, alen;
+    const char *p;
+    sds sname;
+    int ret;
+
+    /* Don't accept new commands when the connection is about to be closed. */
+    if (c->flags & (REDIS_DISCONNECTING | REDIS_FREEING)) return REDIS_ERR;
+
+    /* Setup callback */
+    cb.fn = fn;
+    cb.privdata = privdata;
+
+    /* Find out which command will be appended. */
+    p = nextArgument(cmd,&cstr,&clen);
+    assert(p != NULL);
+    hasnext = (p[0] == '$');
+    pvariant = (tolower(cstr[0]) == 'p') ? 1 : 0;
+    cstr += pvariant;
+    clen -= pvariant;
+
+    if (hasnext && strncasecmp(cstr,"subscribe\r\n",11) == 0) {
+        c->flags |= REDIS_SUBSCRIBED;
+
+        /* Add every channel/pattern to the list of subscription callbacks. */
+        while ((p = nextArgument(p,&astr,&alen)) != NULL) {
+            sname = sdsnewlen(astr,alen);
+            if (pvariant)
+                ret = dictReplace(ac->sub.patterns,sname,&cb);
+            else
+                ret = dictReplace(ac->sub.channels,sname,&cb);
+
+            if (ret == 0) sdsfree(sname);
+        }
+    } else if (strncasecmp(cstr,"unsubscribe\r\n",13) == 0) {
+        /* It is only useful to call (P)UNSUBSCRIBE when the context is
+         * subscribed to one or more channels or patterns. */
+        if (!(c->flags & REDIS_SUBSCRIBED)) return REDIS_ERR;
+
+        /* (P)UNSUBSCRIBE does not have its own response: every channel or
+         * pattern that is unsubscribed will receive a message. This means we
+         * should not append a callback function for this command. */
+     } else if(strncasecmp(cstr,"monitor\r\n",9) == 0) {
+         /* Set monitor flag and push callback */
+         c->flags |= REDIS_MONITORING;
+         __redisPushCallbackRedox(&ac->replies,&cb);
+    } else {
+        if (c->flags & REDIS_SUBSCRIBED)
+            /* This will likely result in an error reply, but it needs to be
+             * received and passed to the callback. */
+            __redisPushCallbackRedox(&ac->sub.invalid,&cb);
+        else
+            __redisPushCallbackRedox(&ac->replies,&cb);
+    }
+
+    __redisAppendCommandRedox(c,cmd,len);
+
+    /* Always schedule a write when the write buffer is non-empty */
+    _EL_ADD_WRITE(ac);
+
+    return REDIS_OK;
+}
+
 int redisvAsyncCommand(redisAsyncContext *ac, redisCallbackFn *fn, void *privdata, const char *format, va_list ap) {
     char *cmd;
     int len;
@@ -667,11 +757,35 @@ int redisvAsyncCommand(redisAsyncContext *ac, redisCallbackFn *fn, void *privdat
     return status;
 }
 
+int redisvAsyncCommandRedox(redisAsyncContext *ac, redisCallbackFn *fn, void *privdata, const char *format, va_list ap) {
+    char *cmd;
+    int len;
+    int status;
+    len = redisvFormatCommandRedox(&cmd,format,ap);
+
+    /* We don't want to pass -1 or -2 to future functions as a length. */
+    if (len < 0)
+        return REDIS_ERR;
+
+    status = __redisAsyncCommandRedox(ac,fn,privdata,cmd,len);
+    free(cmd);
+    return status;
+}
+
 int redisAsyncCommand(redisAsyncContext *ac, redisCallbackFn *fn, void *privdata, const char *format, ...) {
     va_list ap;
     int status;
     va_start(ap,format);
     status = redisvAsyncCommand(ac,fn,privdata,format,ap);
+    va_end(ap);
+    return status;
+}
+
+int redisAsyncCommandRedox(redisAsyncContext *ac, redisCallbackFn *fn, void *privdata, const char *format, ...) {
+    va_list ap;
+    int status;
+    va_start(ap,format);
+    status = redisvAsyncCommandRedox(ac,fn,privdata,format,ap);
     va_end(ap);
     return status;
 }
