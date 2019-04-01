@@ -84,9 +84,6 @@ class ObjectDirectoryInterface {
   /// \param object_id The required object's ObjectID.
   /// \param success_cb Invoked with non-empty list of client ids and object_id.
   /// \return Status of whether subscription succeeded.
-  virtual ray::Status SubscribeObjectLocations(const UniqueID &callback_id,
-                                               const ObjectID &object_id,
-                                               const OnLocationsFound &callback) = 0;
 
   virtual ray::Status SubscribeObjectLocations(const UniqueID &callback_id,
                                                const ObjectID &object_id,
@@ -102,9 +99,6 @@ class ObjectDirectoryInterface {
   virtual ray::Status UnsubscribeObjectLocations(const UniqueID &callback_id,
                                                  const ObjectID &object_id,
                                                  bool from_wait=false) = 0;
-  virtual ray::Status UnsubscribeObjectLocations(const UniqueID &callback_id,
-                                                 const ObjectID &object_id
-                                                ) = 0;
 
   /// Report objects added to this node's store to the object directory.
   ///
