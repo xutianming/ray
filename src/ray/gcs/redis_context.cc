@@ -311,7 +311,7 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
   
   int64_t callback_index = -1;
   if ( !from_wait ) {
-    RAY_LOG(ERROR) << "Error from_wait should be true";
+    callback_index = redisCallback != nullptr ? RedisCallbackManager::instance().add(redisCallback) : -1;
   }
   if (length > 0) {
     if (log_length >= 0) {
