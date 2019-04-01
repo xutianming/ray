@@ -315,8 +315,8 @@ Status Set<ID, Data>::Add(const JobID &job_id, const ID &id,
 template <typename ID, typename Data>
 Status Set<ID, Data>::CancelNotifications(const JobID &job_id, const ID &id,
                                           const ClientID &client_id, bool from_wait) {
-  RAY_CHECK(subscribe_callback_index_ >= 0)
-      << "Client canceled notifications on a key before Subscribe completed";
+  // RAY_CHECK(subscribe_callback_index_ >= 0)
+  //    << "Client canceled notifications on a key before Subscribe completed";
   return GetRedisContext(id)->RunAsync("RAY.TABLE_CANCEL_NOTIFICATIONS", id,
                                        client_id.data(), client_id.size(), prefix_,
                                        pubsub_channel_, nullptr, from_wait);
@@ -326,8 +326,8 @@ template <typename ID, typename Data>
 Status Set<ID, Data>::RequestNotifications(const JobID &job_id, const ID &id,
                                            const ClientID &client_id,
                                            bool from_wait) {
-  RAY_CHECK(subscribe_callback_index_ >= 0)
-      << "Client requested notifications on a key before Subscribe completed";
+  // RAY_CHECK(subscribe_callback_index_ >= 0)
+  //    << "Client requested notifications on a key before Subscribe completed";
   return GetRedisContext(id)->RunAsync("RAY.TABLE_REQUEST_NOTIFICATIONS", id,
                                        client_id.data(), client_id.size(), prefix_,
                                        pubsub_channel_, nullptr, from_wait);
