@@ -30,12 +30,12 @@ add_custom_command(
 
 add_dependencies(gen_node_manager_fbs flatbuffers_ep)
 
-ADD_RAY_TEST(object_manager_integration_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
-ADD_RAY_TEST(worker_pool_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
-ADD_RAY_TEST(client_connection_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
-ADD_RAY_TEST(task_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
-ADD_RAY_TEST(lineage_cache_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
-ADD_RAY_TEST(task_dependency_manager_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
+#ADD_RAY_TEST(object_manager_integration_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
+#ADD_RAY_TEST(worker_pool_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
+#ADD_RAY_TEST(client_connection_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
+#ADD_RAY_TEST(task_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
+#ADD_RAY_TEST(lineage_cache_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
+#ADD_RAY_TEST(task_dependency_manager_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
 #ADD_RAY_TEST(reconstruction_policy_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
 
 include_directories(${GCS_FBS_OUTPUT_DIRECTORY})
