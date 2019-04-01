@@ -60,6 +60,7 @@
 
 /* Forward declaration of function in hiredis.c */
 int __redisAppendCommand(redisContext *c, const char *cmd, size_t len);
+int __redisAppendCommandRedox(redisContext *c, const char *cmd, size_t len);
 
 /* Functions managing dictionary of callbacks for pub/sub. */
 static unsigned int callbackHash(const void *key) {
