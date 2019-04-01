@@ -365,11 +365,12 @@ template <class ReplyT> Command<ReplyT> *Redox::findCommand(long id) {
 
 template <class ReplyT>
 void Redox::commandCallback(redisAsyncContext *ctx, void *r, void *privdata) {
-
+  
   Redox *rdx = (Redox *)ctx->data;
   long id = (long)privdata;
+  fprintf(stderr, "got command callback: %ld\n", id);
   redisReply *reply_obj = (redisReply *)r;
-
+  
   Command<ReplyT> *c = rdx->findCommand<ReplyT>(id);
   if (c == nullptr) {
     freeReplyObject(reply_obj);
@@ -446,7 +447,7 @@ void Redox::submitCommandCallback(struct ev_loop *loop, ev_timer *timer, int rev
 }
 
 template <class ReplyT> bool Redox::processQueuedCommand(long id) {
-
+  fprintf(stderr, "redox submit to server command id: %ld\n", id);
   Command<ReplyT> *c = findCommand<ReplyT>(id);
   if (c == nullptr)
     return false;
