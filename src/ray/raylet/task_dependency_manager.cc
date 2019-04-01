@@ -60,13 +60,13 @@ void TaskDependencyManager::HandleRemoteDependencyRequired(const ObjectID &objec
   }
 }
 
-void TaskDependencyManager::HandleRemoteDependencyCanceled(const ObjectID &object_id) {
+void TaskDependencyManager::HandleRemoteDependencyCanceled(const ObjectID &object_id, bool from_wait) {
   bool required = CheckObjectRequired(object_id);
   // If the object is no longer required, then cancel the object.
   if (!required) {
     auto it = required_objects_.find(object_id);
     if (it != required_objects_.end()) {
-      object_manager_.CancelPull(object_id);
+      object_manager_.CancelPull(object_id, from_wait);
       reconstruction_policy_.Cancel(object_id);
       required_objects_.erase(it);
     }
@@ -170,7 +170,7 @@ bool TaskDependencyManager::SubscribeDependencies(
   return (task_entry.num_missing_dependencies == 0);
 }
 
-bool TaskDependencyManager::UnsubscribeDependencies(const TaskID &task_id) {
+bool TaskDependencyManager::UnsubscribeDependencies(const TaskID &task_id, bool from_wait) {
   // Remove the task from the table of subscribed tasks.
   auto it = task_dependencies_.find(task_id);
   if (it == task_dependencies_.end()) {
@@ -206,7 +206,7 @@ bool TaskDependencyManager::UnsubscribeDependencies(const TaskID &task_id) {
   // These dependencies are no longer required by the given task. Cancel any
   // in-progress operations to make them local.
   for (const auto &object_id : task_entry.object_dependencies) {
-    HandleRemoteDependencyCanceled(object_id);
+    HandleRemoteDependencyCanceled(object_id, from_wait);
   }
 
   return true;

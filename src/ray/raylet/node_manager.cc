@@ -998,7 +998,7 @@ void NodeManager::ProcessWaitRequestMessage(
         if (status.ok()) {
           // The client is unblocked now because the wait call has returned.
           if (client_blocked) {
-            HandleTaskUnblocked(client, current_task_id);
+            HandleTaskUnblocked(client, current_task_id, true);
           }
         } else {
           // We failed to write to the client, so disconnect the client.
@@ -1482,7 +1482,8 @@ void NodeManager::HandleTaskBlocked(const std::shared_ptr<LocalClientConnection>
 }
 
 void NodeManager::HandleTaskUnblocked(
-    const std::shared_ptr<LocalClientConnection> &client, const TaskID &current_task_id) {
+    const std::shared_ptr<LocalClientConnection> &client, const TaskID &current_task_id,
+    bool from_wait) {
   std::shared_ptr<Worker> worker = worker_pool_.GetRegisteredWorker(client);
 
   // TODO(swang): Because the object dependencies are tracked in the task
@@ -1539,7 +1540,7 @@ void NodeManager::HandleTaskUnblocked(
   worker->RemoveBlockedTaskId(current_task_id);
   // Unsubscribe to the objects. Any fetch or reconstruction operations to
   // make the objects local are canceled.
-  RAY_CHECK(task_dependency_manager_.UnsubscribeDependencies(current_task_id));
+  RAY_CHECK(task_dependency_manager_.UnsubscribeDependencies(current_task_id, from_wait));
   local_queues_.RemoveBlockedTaskId(current_task_id);
 }
 

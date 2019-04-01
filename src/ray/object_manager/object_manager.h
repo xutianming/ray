@@ -62,7 +62,7 @@ struct LocalObjectInfo {
 class ObjectManagerInterface {
  public:
   virtual ray::Status Pull(const ObjectID &object_id) = 0;
-  virtual void CancelPull(const ObjectID &object_id) = 0;
+  virtual void CancelPull(const ObjectID &object_id, bool from_wait=false) = 0;
   virtual ~ObjectManagerInterface(){};
 };
 
@@ -149,7 +149,7 @@ class ObjectManager : public ObjectManagerInterface {
   ///
   /// \param object_id The ObjectID.
   /// \return Void.
-  void CancelPull(const ObjectID &object_id);
+  void CancelPull(const ObjectID &object_id, bool from_wait=false);
 
   /// Callback definition for wait.
   using WaitCallback = std::function<void(const std::vector<ray::ObjectID> &found,

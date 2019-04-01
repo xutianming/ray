@@ -271,7 +271,7 @@ class NodeManager {
   /// \param current_task_id The task that is unblocked.
   /// \return Void.
   void HandleTaskUnblocked(const std::shared_ptr<LocalClientConnection> &client,
-                           const TaskID &current_task_id);
+                           const TaskID &current_task_id, bool from_wait=false);
 
   /// Kill a worker.
   ///

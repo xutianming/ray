@@ -508,14 +508,14 @@ ray::Status ObjectManager::SendObjectData(const ObjectID &object_id,
   return status;
 }
 
-void ObjectManager::CancelPull(const ObjectID &object_id) {
+void ObjectManager::CancelPull(const ObjectID &object_id, bool from_wait) {
   auto it = pull_requests_.find(object_id);
   if (it == pull_requests_.end()) {
     return;
   }
 
   RAY_CHECK_OK(object_directory_->UnsubscribeObjectLocations(
-      object_directory_pull_callback_id_, object_id));
+      object_directory_pull_callback_id_, object_id, from_wait));
   pull_requests_.erase(it);
 }
 
