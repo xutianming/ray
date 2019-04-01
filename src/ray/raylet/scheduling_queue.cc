@@ -362,7 +362,7 @@ void SchedulingQueue::AddBlockedTaskId(const TaskID &task_id) {
 void SchedulingQueue::RemoveBlockedTaskId(const TaskID &task_id) {
   RAY_LOG(DEBUG) << "Removed blocked task " << task_id;
   auto erased = blocked_task_ids_.erase(task_id);
-  RAY_CHECK(erased == 1);
+  //RAY_CHECK(erased == 1);
 }
 
 void SchedulingQueue::AddDriverTaskId(const TaskID &driver_id) {
