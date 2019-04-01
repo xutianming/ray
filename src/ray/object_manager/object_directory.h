@@ -88,6 +88,10 @@ class ObjectDirectoryInterface {
                                                const ObjectID &object_id,
                                                const OnLocationsFound &callback) = 0;
 
+  virtual ray::Status SubscribeObjectLocations(const UniqueID &callback_id,
+                                               const ObjectID &object_id,
+                                               const OnLocationsFound &callback,
+                                               bool from_wait=false) = 0;
   /// Unsubscribe to object location notifications.
   ///
   /// \param callback_id The id associated with a callback. This was given
@@ -98,6 +102,9 @@ class ObjectDirectoryInterface {
   virtual ray::Status UnsubscribeObjectLocations(const UniqueID &callback_id,
                                                  const ObjectID &object_id,
                                                  bool from_wait=false) = 0;
+  virtual ray::Status UnsubscribeObjectLocations(const UniqueID &callback_id,
+                                                 const ObjectID &object_id
+                                                ) = 0;
 
   /// Report objects added to this node's store to the object directory.
   ///
