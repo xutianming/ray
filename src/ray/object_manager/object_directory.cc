@@ -152,14 +152,15 @@ void ObjectDirectory::HandleClientRemoved(const ClientID &client_id) {
 
 ray::Status ObjectDirectory::SubscribeObjectLocations(const UniqueID &callback_id,
                                                       const ObjectID &object_id,
-                                                      const OnLocationsFound &callback) {
+                                                      const OnLocationsFound &callback,
+                                                      bool from_wait) {
   RAY_LOG(DEBUG) << "request location info for object: " << object_id;
   ray::Status status = ray::Status::OK();
   auto it = listeners_.find(object_id);
   if (it == listeners_.end()) {
     it = listeners_.emplace(object_id, LocationListenerState()).first;
     status = gcs_client_->object_table().RequestNotifications(
-        JobID::nil(), object_id, gcs_client_->client_table().GetLocalClientId());
+        JobID::nil(), object_id, gcs_client_->client_table().GetLocalClientId(), from_wait);
   }
   auto &listener_state = it->second;
   // TODO(hme): Make this fatal after implementing Pull suppression.
@@ -178,7 +179,8 @@ ray::Status ObjectDirectory::SubscribeObjectLocations(const UniqueID &callback_i
 }
 
 ray::Status ObjectDirectory::UnsubscribeObjectLocations(const UniqueID &callback_id,
-                                                        const ObjectID &object_id) {
+                                                        const ObjectID &object_id,
+                                                        bool from_wait) {
   ray::Status status = ray::Status::OK();
   auto entry = listeners_.find(object_id);
   if (entry == listeners_.end()) {
@@ -187,7 +189,7 @@ ray::Status ObjectDirectory::UnsubscribeObjectLocations(const UniqueID &callback
   entry->second.callbacks.erase(callback_id);
   if (entry->second.callbacks.empty()) {
     status = gcs_client_->object_table().CancelNotifications(
-        JobID::nil(), object_id, gcs_client_->client_table().GetLocalClientId());
+        JobID::nil(), object_id, gcs_client_->client_table().GetLocalClientId(), from_wait);
     listeners_.erase(entry);
   }
   return status;
@@ -224,6 +226,42 @@ ray::Status ObjectDirectory::LookupLocations(const ObjectID &object_id,
           // in the GCS client's lookup callback stack.
           callback(object_id, client_ids);
         });
+  }
+  return status;
+}
+
+ray::Status ObjectDirectory::LookupLocations(const ObjectID &object_id,
+                                             const OnLocationsFound &callback,
+                                             bool from_wait) {
+  RAY_LOG(DEBUG) << "Lookup locations: " << object_id;
+  ray::Status status;
+  auto it = listeners_.find(object_id);
+  if (it != listeners_.end() && it->second.subscribed) {
+    // If we have locations cached due to a concurrent SubscribeObjectLocations
+    // call, and we have received at least one notification from the GCS about
+    // the object's creation, then call the callback immediately with the
+    // cached locations.
+    auto &locations = it->second.current_object_locations;
+    io_service_.post(
+        [callback, object_id, locations]() { callback(object_id, locations); });
+  } else {
+    // We do not have any locations cached due to a concurrent
+    // SubscribeObjectLocations call, so look up the object's locations
+    // directly from the GCS.
+    RAY_LOG(DEBUG) << "Access object table for: " << object_id;
+    status = gcs_client_->object_table().Lookup(
+        JobID::nil(), object_id,
+        [this, callback](gcs::AsyncGcsClient *client, const ObjectID &object_id,
+                         const std::vector<ObjectTableDataT> &location_updates) {
+          RAY_LOG(DEBUG) << "found locations for: " << object_id << " " << location_updates.size() << " found"; 
+		      // Build the set of current locations based on the entries in the log.
+          std::unordered_set<ClientID> client_ids;
+          UpdateObjectLocations(GcsTableNotificationMode::APPEND_OR_ADD, location_updates,
+                                gcs_client_->client_table(), &client_ids);
+          // It is safe to call the callback directly since this is already running
+          // in the GCS client's lookup callback stack.
+          callback(object_id, client_ids);
+        }, from_wait);
   }
   return status;
 }

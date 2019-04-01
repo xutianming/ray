@@ -313,6 +313,57 @@ Status Set<ID, Data>::Add(const JobID &job_id, const ID &id,
 }
 
 template <typename ID, typename Data>
+Status Set<ID, Data>::CancelNotifications(const JobID &job_id, const ID &id,
+                                          const ClientID &client_id, bool from_wait) {
+  RAY_CHECK(subscribe_callback_index_ >= 0)
+      << "Client canceled notifications on a key before Subscribe completed";
+  return GetRedisContext(id)->RunAsync("RAY.TABLE_CANCEL_NOTIFICATIONS", id,
+                                       client_id.data(), client_id.size(), prefix_,
+                                       pubsub_channel_, nullptr, from_wait);
+}
+
+template <typename ID, typename Data>
+Status Set<ID, Data>::RequestNotifications(const JobID &job_id, const ID &id,
+                                           const ClientID &client_id,
+                                           bool from_wait) {
+  RAY_CHECK(subscribe_callback_index_ >= 0)
+      << "Client requested notifications on a key before Subscribe completed";
+  return GetRedisContext(id)->RunAsync("RAY.TABLE_REQUEST_NOTIFICATIONS", id,
+                                       client_id.data(), client_id.size(), prefix_,
+                                       pubsub_channel_, nullptr, from_wait);
+}
+
+template <typename ID, typename Data>
+Status Set<ID, Data>::Lookup(const JobID &job_id, const ID &id, const Callback &lookup, bool from_wait) {
+  RAY_LOG(DEBUG) << "try to look up id: " << id;
+  num_lookups_++;
+  auto callback = [this, id, lookup](const std::string &data) {
+    RAY_LOG(DEBUG) << "look up id: " << id << " success callback";
+    if (lookup != nullptr) {
+      std::vector<DataT> results;
+      if (!data.empty()) {
+        auto root = flatbuffers::GetRoot<GcsTableEntry>(data.data());
+        RAY_LOG(DEBUG) << "Log lookup callback: " << root->entries()->size() <<" found";
+        RAY_CHECK(from_flatbuf<ID>(*root->id()) == id);
+        for (size_t i = 0; i < root->entries()->size(); i++) {
+          DataT result;
+          auto data_root = flatbuffers::GetRoot<Data>(root->entries()->Get(i)->data());
+          data_root->UnPackTo(&result);
+          results.emplace_back(std::move(result));
+        }
+      } else {
+        RAY_LOG(DEBUG) << "Lookup data empty: " << id;
+      }
+      lookup(client_, id, results);
+    }
+    return true;
+  };
+  std::vector<uint8_t> nil;
+  return GetRedisContext(id)->RunAsync("RAY.TABLE_LOOKUP", id, nil.data(), nil.size(),
+                                       prefix_, pubsub_channel_, std::move(callback), from_wait);
+}
+
+template <typename ID, typename Data>
 Status Set<ID, Data>::Remove(const JobID &job_id, const ID &id,
                              std::shared_ptr<DataT> &dataT, const WriteCallback &done) {
   num_removes_++;

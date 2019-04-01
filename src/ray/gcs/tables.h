@@ -399,9 +399,9 @@ class Set : private Log<ID, Data>,
   Set(const std::vector<std::shared_ptr<RedisContext>> &contexts, AsyncGcsClient *client)
       : Log<ID, Data>(contexts, client) {}
 
-  using Log<ID, Data>::RequestNotifications;
-  using Log<ID, Data>::CancelNotifications;
-  using Log<ID, Data>::Lookup;
+  //using Log<ID, Data>::RequestNotifications;
+  //using Log<ID, Data>::CancelNotifications;
+  //using Log<ID, Data>::Lookup;
   using Log<ID, Data>::Delete;
 
   /// Add an entry to the set.
@@ -432,6 +432,11 @@ class Set : private Log<ID, Data>,
     return Log<ID, Data>::Subscribe(job_id, client_id, subscribe, done);
   }
 
+  Status Lookup(const JobID &job_id, const ID &id, const Callback &lookup, bool from_wait);
+  Status CancelNotifications(const JobID &job_id, const ID &id,
+                             const ClientID &client_id, bool from_wait=false);
+  Status RequestNotifications(const JobID &job_id, const ID &id,
+                              const ClientID &client_id, bool from_wait=false);
   /// Returns debug string for class.
   ///
   /// \return string.

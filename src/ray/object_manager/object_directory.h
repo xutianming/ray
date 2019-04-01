@@ -61,6 +61,9 @@ class ObjectDirectoryInterface {
   virtual ray::Status LookupLocations(const ObjectID &object_id,
                                       const OnLocationsFound &callback) = 0;
 
+  virtual ray::Status LookupLocations(const ObjectID &object_id,
+                                      const OnLocationsFound &callback,
+                                      bool from_wait) = 0;
   /// Handle the removal of an object manager client. This updates the
   /// locations of all subscribed objects that have the removed client as a
   /// location, and fires the subscribed callbacks for those objects.
@@ -93,7 +96,8 @@ class ObjectDirectoryInterface {
   /// \param object_id The object id invoked with Subscribe.
   /// \return Status of unsubscribing from object location notifications.
   virtual ray::Status UnsubscribeObjectLocations(const UniqueID &callback_id,
-                                                 const ObjectID &object_id) = 0;
+                                                 const ObjectID &object_id,
+                                                 bool from_wait=false) = 0;
 
   /// Report objects added to this node's store to the object directory.
   ///
@@ -149,13 +153,19 @@ class ObjectDirectory : public ObjectDirectoryInterface {
   ray::Status LookupLocations(const ObjectID &object_id,
                               const OnLocationsFound &callback) override;
 
+  ray::Status LookupLocations(const ObjectID &object_id,
+                              const OnLocationsFound &callback,
+                              bool from_wait) override;
+
   void HandleClientRemoved(const ClientID &client_id) override;
 
   ray::Status SubscribeObjectLocations(const UniqueID &callback_id,
                                        const ObjectID &object_id,
-                                       const OnLocationsFound &callback) override;
+                                       const OnLocationsFound &callback,
+                                       bool from_wait=false) override;
   ray::Status UnsubscribeObjectLocations(const UniqueID &callback_id,
-                                         const ObjectID &object_id) override;
+                                         const ObjectID &object_id,
+                                         bool from_wait=false) override;
 
   ray::Status ReportObjectAdded(
       const ObjectID &object_id, const ClientID &client_id,

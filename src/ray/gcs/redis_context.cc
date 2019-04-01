@@ -220,10 +220,9 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
   //RAY_LOG(DEBUG) << "redis cmd: " << command << " prefix: " << static_cast<int>(prefix)
   //               << " id: " << id;
   
-  int64_t callback_index = -1;
-  if (length > 0 || prefix !=  TablePrefix::OBJECT) {
-      callback_index = redisCallback != nullptr ? RedisCallbackManager::instance().add(redisCallback) : -1;
-  }
+  int64_t callback_index = 
+      redisCallback != nullptr ? RedisCallbackManager::instance().add(redisCallback) : -1;
+  
   if (length > 0) {
     if (log_length >= 0) {
       std::string redis_command = command + " %d %d %b %b %d";
@@ -267,8 +266,98 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
       //}
     }
   } else {
-    
+    /**
     if (prefix == TablePrefix::OBJECT && command == "RAY.TABLE_LOOKUP") {
+      RAY_LOG(DEBUG) << "object query, use redox id: " << id;
+      redox::RayCmd *raycmd = new redox::RayCmd();
+      raycmd->redis_command = command + " %d %d %b";
+      raycmd->id = id.data();
+      raycmd->id_size = id.size();
+      raycmd->data = data;
+      raycmd->length = length;
+      raycmd->prefix = static_cast<int>(prefix);
+      raycmd->pubsub_channel = static_cast<int>(pubsub_channel);
+
+      rdx_->command<std::string>(raycmd, [redisCallback, id](redox::Command<std::string>& c) {
+        RAY_LOG(DEBUG) << "Redox query callback invoked, id: " << id 
+                       << " reply status " << c.status()
+                       << " reply value: " << c.reply();
+        redisCallback(c.reply());
+      });
+      //free(cmd);
+    } else {
+    */
+      RAY_CHECK(log_length == -1);
+      std::string redis_command = command + " %d %d %b";
+      int status = redisAsyncCommand(
+          async_context_, reinterpret_cast<redisCallbackFn *>(&GlobalRedisCallback),
+          reinterpret_cast<void *>(callback_index), redis_command.c_str(), prefix,
+          pubsub_channel, id.data(), id.size());
+      if (status == REDIS_ERR) {
+        return Status::RedisError(std::string(async_context_->errstr));
+      }
+	    RAY_LOG(DEBUG) << "Redis err msg: " << std::string(async_context_->errstr);
+    //}
+  }
+  return Status::OK();
+}
+
+Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
+                              const uint8_t *data, int64_t length,
+                              const TablePrefix prefix, const TablePubsub pubsub_channel,
+                              RedisCallback redisCallback, bool from_wait, int log_length) {
+  //RAY_LOG(DEBUG) << "redis cmd: " << command << " prefix: " << static_cast<int>(prefix)
+  //               << " id: " << id;
+  
+  int64_t callback_index = -1;
+  if ( !from_wait ) {
+    RAY_LOG(ERROR) << "Error from_wait should be true";
+  }
+  if (length > 0) {
+    if (log_length >= 0) {
+      std::string redis_command = command + " %d %d %b %b %d";
+      int status = redisAsyncCommand(
+          async_context_, reinterpret_cast<redisCallbackFn *>(&GlobalRedisCallback),
+          reinterpret_cast<void *>(callback_index), redis_command.c_str(), prefix,
+          pubsub_channel, id.data(), id.size(), data, length, log_length);
+      if (status == REDIS_ERR) {
+        return Status::RedisError(std::string(async_context_->errstr));
+      }
+    } else {
+      
+      if (from_wait) {
+        RAY_LOG(DEBUG) << "object add, use redox, write " << length
+                       << " data, id: " << id;
+        redox::RayCmd *raycmd = new redox::RayCmd();
+        raycmd->redis_command = command + " %d %d %b %b";
+        raycmd->id = id.data();
+        raycmd->id_size = id.size();
+        raycmd->data = data;
+        raycmd->length = length;
+        raycmd->prefix = static_cast<int>(prefix);
+        raycmd->pubsub_channel = static_cast<int>(pubsub_channel);
+        rdx_->command<std::string>(raycmd, [redisCallback, id](redox::Command<std::string>& c) {
+          RAY_LOG(DEBUG) << "Redox write callback invoked, id: " << id
+                         << " reply status " << c.status()
+                         << " reply value: " << c.reply();
+          
+          redisCallback(c.reply());
+        });
+      } else {
+      
+        std::string redis_command = command + " %d %d %b %b";
+        int status = redisAsyncCommand(
+            async_context_, reinterpret_cast<redisCallbackFn *>(&GlobalRedisCallback),
+            reinterpret_cast<void *>(callback_index), redis_command.c_str(), prefix,
+            pubsub_channel, id.data(), id.size(), data, length);
+        if (status == REDIS_ERR) {
+          return Status::RedisError(std::string(async_context_->errstr));
+        }
+      }
+    }
+  } else {
+    
+    if ( from_wait ) {
       RAY_LOG(DEBUG) << "object query, use redox id: " << id;
       redox::RayCmd *raycmd = new redox::RayCmd();
       raycmd->redis_command = command + " %d %d %b";

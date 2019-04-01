@@ -23,7 +23,7 @@ namespace gcs {
 /// operation and return a bool indicating whether the callback should be
 /// deleted once called.
 using RedisCallback = std::function<bool(const std::string &)>;
-
+using RedisCallbackW = std::function<bool(const std::string &, bool from_wait)>;
 class RedisCallbackManager {
  public:
   static RedisCallbackManager &instance() {
@@ -77,6 +77,11 @@ class RedisContext {
                   const TablePubsub pubsub_channel, RedisCallback redisCallback,
                   int log_length = -1);
 
+  Status RunAsync(const std::string &command, const UniqueID &id, const uint8_t *data,
+                  int64_t length, const TablePrefix prefix,
+                  const TablePubsub pubsub_channel, RedisCallback redisCallback,
+                  bool from_wait,
+                  int log_length = -1);
   /// Run an arbitrary Redis command without a callback.
   ///
   /// \param args The vector of command args to pass to Redis.

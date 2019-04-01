@@ -592,20 +592,20 @@ ray::Status ObjectManager::LookupRemainingWaitObjects(const UniqueID &wait_id) {
                            << " locations found for object " << lookup_object_id;
             wait_state.requested_objects.erase(lookup_object_id);
             if (wait_state.requested_objects.empty()) {
-              SubscribeRemainingWaitObjects(wait_id);
+              SubscribeRemainingWaitObjects(wait_id, true);
             }
-          }));
+          }, true));
     }
   }
   return ray::Status::OK();
 }
 
-void ObjectManager::SubscribeRemainingWaitObjects(const UniqueID &wait_id) {
+void ObjectManager::SubscribeRemainingWaitObjects(const UniqueID &wait_id, bool from_wait) {
   auto &wait_state = active_wait_requests_.find(wait_id)->second;
   if (wait_state.found.size() >= wait_state.num_required_objects ||
       wait_state.timeout_ms == 0) {
     // Requirements already satisfied.
-    WaitComplete(wait_id);
+    WaitComplete(wait_id, from_wait);
     return;
   }
 
@@ -619,7 +619,7 @@ void ObjectManager::SubscribeRemainingWaitObjects(const UniqueID &wait_id) {
       // Subscribe to object notifications.
       RAY_CHECK_OK(object_directory_->SubscribeObjectLocations(
           wait_id, object_id,
-          [this, wait_id](const ObjectID &subscribe_object_id,
+          [this, wait_id, from_wait](const ObjectID &subscribe_object_id,
                           const std::unordered_set<ClientID> &client_ids) {
             if (!client_ids.empty()) {
               RAY_LOG(DEBUG) << "Wait request " << wait_id
@@ -638,12 +638,12 @@ void ObjectManager::SubscribeRemainingWaitObjects(const UniqueID &wait_id) {
               wait_state.found.insert(subscribe_object_id);
               wait_state.requested_objects.erase(subscribe_object_id);
               RAY_CHECK_OK(object_directory_->UnsubscribeObjectLocations(
-                  wait_id, subscribe_object_id));
+                  wait_id, subscribe_object_id, from_wait));
               if (wait_state.found.size() >= wait_state.num_required_objects) {
-                WaitComplete(wait_id);
+                WaitComplete(wait_id, from_wait);
               }
             }
-          }));
+          }, from_wait));
     }
 
     // If a timeout was provided, then set a timer. If we don't find locations
@@ -664,13 +664,13 @@ void ObjectManager::SubscribeRemainingWaitObjects(const UniqueID &wait_id) {
               // This check will avoid the duplicated call of this function.
               return;
             }
-            WaitComplete(wait_id);
+            WaitComplete(wait_id, from_wait);
           });
     }
   }
 }
 
-void ObjectManager::WaitComplete(const UniqueID &wait_id) {
+void ObjectManager::WaitComplete(const UniqueID &wait_id, bool from_wait) {
   auto iter = active_wait_requests_.find(wait_id);
   RAY_CHECK(iter != active_wait_requests_.end());
   auto &wait_state = iter->second;
@@ -681,7 +681,7 @@ void ObjectManager::WaitComplete(const UniqueID &wait_id) {
   }
   // Unsubscribe to any objects that weren't found in the time allotted.
   for (const auto &object_id : wait_state.requested_objects) {
-    RAY_CHECK_OK(object_directory_->UnsubscribeObjectLocations(wait_id, object_id));
+    RAY_CHECK_OK(object_directory_->UnsubscribeObjectLocations(wait_id, object_id, from_wait));
   }
   // Cancel the timer. This is okay even if the timer hasn't been started.
   // The timer handler will be given a non-zero error code. The handler

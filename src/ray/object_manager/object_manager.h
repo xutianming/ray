@@ -234,9 +234,9 @@ class ObjectManager : public ObjectManagerInterface {
 
   /// Invoked when lookup for remaining objects has been invoked. This method subscribes
   /// to any remaining objects if wait conditions have not yet been satisfied.
-  void SubscribeRemainingWaitObjects(const UniqueID &wait_id);
+  void SubscribeRemainingWaitObjects(const UniqueID &wait_id, bool from_wait=false);
   /// Completion handler for Wait.
-  void WaitComplete(const UniqueID &wait_id);
+  void WaitComplete(const UniqueID &wait_id, bool from_wait=false);
 
   /// Spread the Free request to all objects managers.
   ///
