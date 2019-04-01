@@ -36,7 +36,7 @@ ADD_RAY_TEST(client_connection_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
 ADD_RAY_TEST(task_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
 ADD_RAY_TEST(lineage_cache_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
 ADD_RAY_TEST(task_dependency_manager_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
-ADD_RAY_TEST(reconstruction_policy_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
+#ADD_RAY_TEST(reconstruction_policy_test STATIC_LINK_LIBS ${RAY_TEST_LIBS})
 
 include_directories(${GCS_FBS_OUTPUT_DIRECTORY})
 add_library(rayletlib raylet.cc ${NODE_MANAGER_FBS_OUTPUT_FILES})
