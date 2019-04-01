@@ -434,9 +434,9 @@ class Set : private Log<ID, Data>,
 
   Status Lookup(const JobID &job_id, const ID &id, const Callback &lookup, bool from_wait);
   Status CancelNotifications(const JobID &job_id, const ID &id,
-                             const ClientID &client_id, bool from_wait=false);
+                             const ClientID &client_id, bool from_wait);
   Status RequestNotifications(const JobID &job_id, const ID &id,
-                              const ClientID &client_id, bool from_wait=false);
+                              const ClientID &client_id, bool from_wait);
   /// Returns debug string for class.
   ///
   /// \return string.
