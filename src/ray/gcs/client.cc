@@ -76,7 +76,7 @@ AsyncGcsClient::AsyncGcsClient(const std::string &address, int port,
                                bool is_test_client = false,
                                const std::string &password = "") {
   rdx_ = new redox::Redox();
-  rdx_->noWait(true);
+  //rdx_->noWait(true);
   primary_context_ = std::make_shared<RedisContext>();
 
   RAY_CHECK_OK(
