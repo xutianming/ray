@@ -399,9 +399,9 @@ class Set : private Log<ID, Data>,
   Set(const std::vector<std::shared_ptr<RedisContext>> &contexts, AsyncGcsClient *client)
       : Log<ID, Data>(contexts, client) {}
 
-  //using Log<ID, Data>::RequestNotifications;
-  //using Log<ID, Data>::CancelNotifications;
-  //using Log<ID, Data>::Lookup;
+  using Log<ID, Data>::RequestNotifications;
+  using Log<ID, Data>::CancelNotifications;
+  using Log<ID, Data>::Lookup;
   using Log<ID, Data>::Delete;
 
   /// Add an entry to the set.
