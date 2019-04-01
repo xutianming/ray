@@ -653,7 +653,7 @@ void ObjectManager::SubscribeRemainingWaitObjects(const UniqueID &wait_id, bool 
       auto timeout = boost::posix_time::milliseconds(wait_state.timeout_ms);
       wait_state.timeout_timer->expires_from_now(timeout);
       wait_state.timeout_timer->async_wait(
-          [this, wait_id](const boost::system::error_code &error_code) {
+          [this, wait_id, from_wait](const boost::system::error_code &error_code) {
             if (error_code.value() != 0) {
               return;
             }
