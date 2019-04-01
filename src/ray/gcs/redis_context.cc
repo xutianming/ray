@@ -341,8 +341,9 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
           RAY_LOG(DEBUG) << "Redox write callback invoked, id: " << id
                          << " reply status " << c.status()
                          << " reply value: " << c.reply();
-          
-          redisCallback(c.reply());
+          if (redisCallback != nullptr) {
+            redisCallback(c.reply());
+          }
         });
       } else {
       
@@ -373,7 +374,9 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
         RAY_LOG(DEBUG) << "Redox query callback invoked, id: " << id 
                        << " reply status " << c.status()
                        << " reply value: " << c.reply();
-        redisCallback(c.reply());
+        if (redisCallback != nullptr) {
+          redisCallback(c.reply());
+        }       
       });
       //free(cmd);
     } else {
