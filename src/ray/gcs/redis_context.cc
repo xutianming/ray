@@ -306,13 +306,13 @@ Status RedisContext::RunAsync(const std::string &command, const UniqueID &id,
                               const uint8_t *data, int64_t length,
                               const TablePrefix prefix, const TablePubsub pubsub_channel,
                               RedisCallback redisCallback, bool from_wait, int log_length) {
-  //RAY_LOG(DEBUG) << "redis cmd: " << command << " prefix: " << static_cast<int>(prefix)
-  //               << " id: " << id;
+  RAY_LOG(DEBUG) << "redis cmd: " << command << " prefix: " << static_cast<int>(prefix)
+                 << " id: " << id << "from wait: " << from_wait;
   
   int64_t callback_index = -1;
   if ( !from_wait ) {
     callback_index = redisCallback != nullptr ? RedisCallbackManager::instance().add(redisCallback) : -1;
-    RAY_LOG(ERROR) << "from wait false, command: " << command;
+    // RAY_LOG(ERROR) << "from wait false, command: " << command;
   }
   if (length > 0) {
     if (log_length >= 0) {

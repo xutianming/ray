@@ -690,7 +690,6 @@ void ObjectManager::WaitComplete(const UniqueID &wait_id, bool from_wait) {
   // will do nothing on non-zero error codes.
   //wait_state.timeout_timer->cancel();
   // Order objects according to input order.
-  RAY_LOG(DEBUG) << "Timer canceled";
   std::vector<ObjectID> found;
   std::vector<ObjectID> remaining;
   for (const auto &item : wait_state.object_id_order) {
