@@ -68,7 +68,7 @@ void TaskDependencyManager::HandleRemoteDependencyCanceled(const ObjectID &objec
     if (it != required_objects_.end()) {
       object_manager_.CancelPull(object_id, from_wait);
       reconstruction_policy_.Cancel(object_id);
-      required_objects_.erase(it);
+      required_objects_.erase(object_id);
     }
   }
 }
@@ -178,7 +178,7 @@ bool TaskDependencyManager::UnsubscribeDependencies(const TaskID &task_id, bool 
   }
 
   const TaskDependencies task_entry = std::move(it->second);
-  task_dependencies_.erase(it);
+  task_dependencies_.erase(task_id);
 
   // Remove the task's dependencies.
   for (const auto &object_id : task_entry.object_dependencies) {
@@ -190,7 +190,7 @@ bool TaskDependencyManager::UnsubscribeDependencies(const TaskID &task_id, bool 
     std::vector<TaskID> &dependent_tasks = creating_task_entry->second[object_id];
     auto it = std::find(dependent_tasks.begin(), dependent_tasks.end(), task_id);
     RAY_CHECK(it != dependent_tasks.end());
-    dependent_tasks.erase(it);
+    dependent_tasks.erase(task_id);
     // If the unsubscribed task was the only task dependent on the object, then
     // erase the object entry.
     if (dependent_tasks.empty()) {
@@ -198,7 +198,7 @@ bool TaskDependencyManager::UnsubscribeDependencies(const TaskID &task_id, bool 
       // Remove the task that creates this object if there are no more object
       // dependencies created by the task.
       if (creating_task_entry->second.empty()) {
-        required_tasks_.erase(creating_task_entry);
+        required_tasks_.erase(creating_task_id);
       }
     }
   }

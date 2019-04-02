@@ -190,7 +190,7 @@ ray::Status ObjectDirectory::UnsubscribeObjectLocations(const UniqueID &callback
   if (entry->second.callbacks.empty()) {
     status = gcs_client_->object_table().CancelNotifications(
         JobID::nil(), object_id, gcs_client_->client_table().GetLocalClientId(), from_wait);
-    listeners_.erase(entry);
+    listeners_.erase(object_id);
   }
   return status;
 }

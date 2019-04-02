@@ -987,7 +987,7 @@ void NodeManager::ProcessWaitRequestMessage(
                                                       std::vector<ObjectID> remaining) {
         // Write the data.
         RAY_LOG(DEBUG) << "object manager wait success";
-	    flatbuffers::FlatBufferBuilder fbb;
+	      flatbuffers::FlatBufferBuilder fbb;
         flatbuffers::Offset<protocol::WaitReply> wait_reply = protocol::CreateWaitReply(
             fbb, to_flatbuf(fbb, found), to_flatbuf(fbb, remaining));
         fbb.Finish(wait_reply);

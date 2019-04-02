@@ -150,7 +150,7 @@ ray::Status ObjectManager::Pull(const ObjectID &object_id) {
             it->second.timer_set = false;
           }
         } else {
-          RAY_LOG(DEBUG) << object_id << "found, try to pull";
+          RAY_LOG(DEBUG) << object_id << " found, try to pull";
           // New object locations were found, so begin trying to pull from a
           // client. This will be called every time a new client location
           // appears.
@@ -516,7 +516,7 @@ void ObjectManager::CancelPull(const ObjectID &object_id, bool from_wait) {
 
   RAY_CHECK_OK(object_directory_->UnsubscribeObjectLocations(
       object_directory_pull_callback_id_, object_id, from_wait));
-  pull_requests_.erase(it);
+  pull_requests_.erase(object_id);
 }
 
 ray::Status ObjectManager::Wait(const std::vector<ObjectID> &object_ids,
@@ -651,8 +651,9 @@ void ObjectManager::SubscribeRemainingWaitObjects(const UniqueID &wait_id, bool 
     // from the Wait.
     if (wait_state.timeout_ms != -1) {
       auto timeout = boost::posix_time::milliseconds(wait_state.timeout_ms);
-      wait_state.timeout_timer->expires_from_now(timeout);
-      wait_state.timeout_timer->async_wait(
+      if (wait_state.timeout_timer != nullptr) {
+        wait_state.timeout_timer->expires_from_now(timeout);
+        wait_state.timeout_timer->async_wait(
           [this, wait_id, from_wait](const boost::system::error_code &error_code) {
             if (error_code.value() != 0) {
               return;
@@ -666,6 +667,7 @@ void ObjectManager::SubscribeRemainingWaitObjects(const UniqueID &wait_id, bool 
             }
             WaitComplete(wait_id, from_wait);
           });
+      }
     }
   }
 }
