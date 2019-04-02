@@ -190,7 +190,7 @@ bool TaskDependencyManager::UnsubscribeDependencies(const TaskID &task_id, bool 
     std::vector<TaskID> &dependent_tasks = creating_task_entry->second[object_id];
     auto it = std::find(dependent_tasks.begin(), dependent_tasks.end(), task_id);
     RAY_CHECK(it != dependent_tasks.end());
-    dependent_tasks.erase(task_id);
+    dependent_tasks.erase(it);
     // If the unsubscribed task was the only task dependent on the object, then
     // erase the object entry.
     if (dependent_tasks.empty()) {

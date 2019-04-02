@@ -651,7 +651,6 @@ void ObjectManager::SubscribeRemainingWaitObjects(const UniqueID &wait_id, bool 
     // from the Wait.
     if (wait_state.timeout_ms != -1) {
       auto timeout = boost::posix_time::milliseconds(wait_state.timeout_ms);
-      if (wait_state.timeout_timer != nullptr) {
         wait_state.timeout_timer->expires_from_now(timeout);
         wait_state.timeout_timer->async_wait(
           [this, wait_id, from_wait](const boost::system::error_code &error_code) {
@@ -667,12 +666,12 @@ void ObjectManager::SubscribeRemainingWaitObjects(const UniqueID &wait_id, bool 
             }
             WaitComplete(wait_id, from_wait);
           });
-      }
     }
   }
 }
 
 void ObjectManager::WaitComplete(const UniqueID &wait_id, bool from_wait) {
+  RAY_LOG(DEBUG) << "Wait Complete: " << wait_id << "from wait: " << from_wait;
   auto iter = active_wait_requests_.find(wait_id);
   RAY_CHECK(iter != active_wait_requests_.end());
   auto &wait_state = iter->second;
@@ -685,11 +684,13 @@ void ObjectManager::WaitComplete(const UniqueID &wait_id, bool from_wait) {
   for (const auto &object_id : wait_state.requested_objects) {
     RAY_CHECK_OK(object_directory_->UnsubscribeObjectLocations(wait_id, object_id, from_wait));
   }
+  RAY_LOG(DEBUG) << "Wait complete canceled all notifications";
   // Cancel the timer. This is okay even if the timer hasn't been started.
   // The timer handler will be given a non-zero error code. The handler
   // will do nothing on non-zero error codes.
-  wait_state.timeout_timer->cancel();
+  //wait_state.timeout_timer->cancel();
   // Order objects according to input order.
+  RAY_LOG(DEBUG) << "Timer canceled";
   std::vector<ObjectID> found;
   std::vector<ObjectID> remaining;
   for (const auto &item : wait_state.object_id_order) {
