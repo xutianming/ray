@@ -155,9 +155,9 @@ int main(int argc, char *argv[]) {
   };
   boost::asio::signal_set signals(main_service, SIGTERM);
   signals.async_wait(handler);
-  while(True) {
+  while(true) {
     main_service.poll();
-    ev_run(EV_DEFAULT_ 0);
+    ev_run(EV_DEFAULT_ EVRUN_NOWAIT);
   }
   //main_service.run();
 }

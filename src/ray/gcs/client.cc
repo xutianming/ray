@@ -187,6 +187,8 @@ Status AsyncGcsClient::Attach(boost::asio::io_service &io_service) {
 	  } else {
 		  RAY_LOG(DEBUG) << "libev attach ok";
 	  }
+	  ev_run(EV_DEFAULT_ EVRUN_ONCE);
+	  ev_run(EV_DEFAULT_ EVRUN_NOWAIT);
     //new RedisAsioClient(io_service, context->async_context());
     new RedisAsioClient(io_service, context->subscribe_context());
 	  //redisLibevAttach(evloop_sub_, context->subscribe_context());
